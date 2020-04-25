@@ -1,13 +1,12 @@
-from typing import List
-
 import js2xml
 import lxml.etree
-from parsel import Selector
-
 import scrapy
-from scrapy.http.response.html import HtmlResponse
+from parsel import Selector
 from scrapy.http.request import Request
+from scrapy.http.response.html import HtmlResponse
 
+
+# TODO(blake): remember to add year to dates
 
 class WorldMeterSpider(scrapy.Spider):
     name = 'worldmeter'
@@ -28,23 +27,43 @@ class WorldMeterSpider(scrapy.Spider):
                                  callback=self.parse_country,
                                  cb_kwargs={"country": current_country})
 
-        # yield from response.follow_all(all_link_tags,
-        #                                callback=self.parse_country)
-
     def parse_country(self, response: HtmlResponse, country: str) -> Request:
         all_scripts = response.css(
             'script[type="text/javascript"]::text').getall()
 
-        for i, js_script in enumerate(all_scripts):
+        graphs = []
+        for js_script in all_scripts:
             xml = lxml.etree.tostring(js2xml.parse(js_script),
                                       encoding='unicode')
             selector = Selector(text=xml)
-            all_ = selector.getall()
-            folder = "/home/blake/PycharmProjects/Coronavirus/scripts/new/"
-            with open(f'{folder}{country}-script-{i}.xml', 'a') as file:
-                for script in all_:
-                    file.write(script)
 
+            # scripts forming a chart have this identifier name in them
+            chart_indicator = 'Highcharts'
+            is_chart_script = False
+            for identifier in selector.css('identifier'):
+                try:
+                    if identifier.attrib['name'] == chart_indicator:
+                        is_chart_script = True
+                        break
+                except KeyError:
+                    pass
 
+            if is_chart_script:
+                graph_type, x_axis, y_axis = self.extract_graph_data(
+                    selector=selector)
+                graph = {
+                    f"{graph_type}": {
+                        f"{x}": y for x, y in list(zip(x_axis, y_axis))
+                    }
+                }
+                graphs.append(graph)
 
+        yield {f"{country}": graph for graph in graphs}
 
+    def extract_graph_data(self, selector):
+        graph_type = selector.css('arguments string::text').getall()[0]
+        x_axis = selector.xpath(
+            '//property[contains(@name, "categories")]//string/text()').getall()
+        y_axis = selector.xpath(
+            '//property[contains(@name, "data")]//number/@value').getall()
+        return graph_type, x_axis, y_axis
