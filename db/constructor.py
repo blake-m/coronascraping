@@ -1,0 +1,2 @@
+class DataBaseConstructor(object):
+    pass
