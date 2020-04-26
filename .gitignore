@@ -8,6 +8,7 @@
 response_usa.html
 CoronaScraping/CoronaScraping/spiders/test_spider.py
 **/__pycache__/
+/CoronaScraping/CoronaScraping/worldmeter.json
 
 # User-specific stuff
 .idea/**/workspace.xml

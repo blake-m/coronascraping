@@ -13,18 +13,16 @@ class WorldMeterSpidersExecutor:
             self.configuration = {}
 
         self.spiders = self.configuration.keys()
-        print(self.spiders)
 
     def run_process(self, spider, output_file, spider_config):
         process = crawler.CrawlerProcess(settings={
             "FEEDS": output_file,
         })
-        print(type(spider_config))
-        print(spider_config)
         process.crawl(spider, spider_config)
         process.start()
 
     def run_all(self):
+        # TODO(blake): bring the target solution, remove the temporary
         from CoronaScraping.CoronaScraping.spiders.worldmeter import CountryGraphsDataExtractingSpider
         REAL_SPIDER = CountryGraphsDataExtractingSpider
         for spider_name in self.spiders:

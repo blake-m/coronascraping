@@ -8,10 +8,7 @@ import scrapy
 from scrapy.http.request import Request
 from scrapy.http.response.html import HtmlResponse
 
-try:
-    from CoronaScraping import config
-except ImportError:
-    import config
+from CoronaScraping.CoronaScraping import config
 
 
 # TODO(blake): remember to add year to dates
@@ -35,7 +32,6 @@ class CountryGraphsDataExtractingSpider(BaseSpider):
 
     def __init__(self, path_config, *args, **kwargs):
         super().__init__(path_config, *args, **kwargs)
-        print(self.config.countries_table)
 
     def parse(self, response):
         yield from self.parse_country_links(response)
