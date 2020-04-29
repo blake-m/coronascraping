@@ -22,9 +22,10 @@ class WorldMeterSpidersExecutor:
         process.start()
 
     def run_all(self):
-        # TODO(blake): bring the target solution, remove the temporary
-        from CoronaScraping.CoronaScraping.spiders.worldmeter import CountryGraphsDataExtractingSpider
+        from CoronaScraping.spiders.worldmeter import CountryGraphsDataExtractingSpider
         REAL_SPIDER = CountryGraphsDataExtractingSpider
+        print(self.spiders)
+        print(self.configuration)
         for spider_name in self.spiders:
             output_file = self.configuration[spider_name]["output_file"]
             spider_config = self.configuration[spider_name]["configuration"]

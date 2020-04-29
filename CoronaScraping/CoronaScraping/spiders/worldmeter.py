@@ -8,7 +8,7 @@ import scrapy
 from scrapy.http.request import Request
 from scrapy.http.response.html import HtmlResponse
 
-from CoronaScraping.CoronaScraping import config
+from CoronaScraping import config
 
 
 # TODO(blake): remember to add year to dates

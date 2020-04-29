@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+  coronascraping:
+    build: ./CoronaScraping
+    command: >
+      /bin/bash -c "python ./main.py"
+    volumes:
+      - ./CoronaScraping/:/usr/src/app
+    networks:
+      - main_net
+
+  db:
+    image: postgres:alpine
+    volumes:
+    - ./postgres_data:/var/lib/postgresql/data
+    ports:
+    - "5431:5432"
+    networks:
+      - main_net
+    environment:
+      POSTGRES_PASSWORD: postgres
+
+  db-python-manager:
+    build: ./db
+    command: >
+      /bin/bash -c "python ./constructor.py"
+    volumes:
+    - ./db/:/usr/scr/app
+    depends_on:
+      - db
+    networks:
+      - main_net
+
+
+networks:
+  main_net:
