@@ -7,6 +7,8 @@ services:
       /bin/bash -c "python ./main.py"
     volumes:
       - ./CoronaScraping/:/usr/src/app
+    depends_on:
+      - db_python_manager
     networks:
       - main_net
 
@@ -21,17 +23,40 @@ services:
     environment:
       POSTGRES_PASSWORD: postgres
 
-  db-python-manager:
-    build: ./db
+  db_python_manager:
+    build: ./db_python_manager
     command: >
-      /bin/bash -c "python ./constructor.py"
+      /bin/bash -c "python ./main.py"
     volumes:
-    - ./db/:/usr/scr/app
+    - ./db_python_manager/:/usr/scr/app
+    ports:
+      - "5000:5000"
     depends_on:
       - db
     networks:
       - main_net
 
+  dashboard:
+    build: ./dashboard
+    command: >
+      /bin/bash -c "python ./main.py"
+    depends_on:
+      - db_python_manager
+    ports:
+      - "8050:8050"
+    networks:
+      - main_net
+
+  django:
+    build: ./backend
+    command: >
+      /bin/bash -c "python manage.py runserver "0.0.0.0:8000""
+    depends_on:
+      - dashboard
+    ports:
+      - "8000:8000"
+    networks:
+      - main_net
 
 networks:
   main_net:
