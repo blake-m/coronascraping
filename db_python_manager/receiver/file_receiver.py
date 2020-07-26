@@ -1,13 +1,9 @@
-import json
 import logging
 import os
 
 from flask import Flask, request, url_for, send_from_directory
 
-try:
-    from db_python_manager.receiver import settings
-except ModuleNotFoundError:
-    from receiver import settings
+from receiver import settings
 
 logging.basicConfig(level=logging.DEBUG)
 

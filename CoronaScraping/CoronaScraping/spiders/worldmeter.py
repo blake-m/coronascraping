@@ -1,4 +1,3 @@
-import json
 import abc
 
 import js2xml
@@ -85,4 +84,5 @@ class CountryGraphsDataExtractingSpider(BaseSpider):
                     selector=selector)
                 graphs[f"{graph_type}"] = self.form_graph_data_dict(
                     x_axis, y_axis)
+        print(f"{country}: {graphs}")
         yield {f"{country}": graphs}

@@ -12,7 +12,8 @@ logging.disable(50)  # CRITICAL = 50
 def main():
     config_path = "./CoronaScraping/config.json"
     runner = executor.WorldMeterSpidersExecutor(config_path)
-    output_data_file_paths = runner.run_all()
+
+    output_data_file_paths = runner.run_all_if_not_run_today()
     for file_path in output_data_file_paths:
         sender.run(file_path)
 

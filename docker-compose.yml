@@ -3,6 +3,8 @@ version: '3'
 services:
   coronascraping:
     build: ./CoronaScraping
+    image: corona_scraping
+    container_name: corona_scraping
     command: >
       /bin/bash -c "python ./main.py"
     volumes:
@@ -14,17 +16,23 @@ services:
 
   db:
     image: postgres:alpine
+    container_name: corona_db
     volumes:
-    - ./postgres_data:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
+      - pgconf:/etc/postgresql
+      - pglog:/var/log/postgresql
     ports:
-    - "5431:5432"
+    - 5431:5432
     networks:
       - main_net
     environment:
       POSTGRES_PASSWORD: postgres
 
+
   db_python_manager:
     build: ./db_python_manager
+    image: corona_db_manager
+    container_name: corona_db_manager
     command: >
       /bin/bash -c "python ./main.py"
     volumes:
@@ -38,6 +46,8 @@ services:
 
   dashboard:
     build: ./dashboard
+    image: corona_dashboard
+    container_name: corona_dashboard
     command: >
       /bin/bash -c "python ./main.py"
     depends_on:
@@ -49,6 +59,8 @@ services:
 
   django:
     build: ./backend
+    image: corona_webapp
+    container_name: corona_webapp
     command: >
       /bin/bash -c "python manage.py runserver "0.0.0.0:8000""
     depends_on:
@@ -60,3 +72,11 @@ services:
 
 networks:
   main_net:
+
+volumes:
+  pgdata:
+    driver: local
+  pgconf:
+    driver: local
+  pglog:
+    driver: local

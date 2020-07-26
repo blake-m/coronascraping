@@ -2,8 +2,7 @@ import requests
 
 
 def run(file_path: str):
-    # url = "http://localhost:5000/"
-    url = "http://coronavirus_db_python_manager_1:5000"
+    url = "http://corona_db_manager:5000"
     fin = open(file_path, 'rb')
     files = {'file': fin}
     try:
