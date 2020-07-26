@@ -1,6 +1,5 @@
 import abc
 import enum
-import json
 import logging
 from typing import List, Optional, Tuple
 
@@ -47,10 +46,13 @@ class CRUDMethods(Methods):
             query_constraints = ''.join(query_constraints)
         query_base = self.queries.CREATE_TABLE.value
 
-        query = [query_base] + [table_name] + ['(date VARCHAR(12), '] + [query_columns] + query_constraints + [')']
+        query = [query_base] \
+                + [table_name] \
+                + ['(date VARCHAR(12) UNIQUE, '] \
+                + [query_columns] \
+                + query_constraints \
+                + [')']
         query = ' '.join(query)
 
-
-        print(query)
         self.run_query(query)
         logging.info(f"Table '{table_name}' created.")

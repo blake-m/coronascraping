@@ -175,8 +175,6 @@ class DataBaseConstructor(object):
             kill_connections_query,
             drop_query,
         ])
-        # self.run_query(kill_connections_query, commit=True)
-        # self.run_query(drop_query, commit=True)
 
     def create_db(self, db_name: Optional[str]) -> None:
         logging.info(f"Running: Create Database...")
@@ -186,16 +184,3 @@ class DataBaseConstructor(object):
     def reset_db(self, db_name: Optional[str]) -> None:
         self.drop_dp(db_name)
         self.create_db(db_name)
-
-    # TEST FUNCS:
-    # def add_n_to_table(self):
-    #     query = """
-    #         INSERT INTO test(num, data) VALUES (1, 'lool');
-    #     """
-    #     for i in range(100):
-    #         self.run_query(query, commit=False)
-    #
-    # def read_table(self):
-    #     query = """SELECT * FROM test"""
-    #     fetched = self.run_query(query, fetch_n=0)[-100:]
-    #     print(fetched)

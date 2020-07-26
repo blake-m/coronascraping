@@ -4,7 +4,10 @@
 # Project-specific:
 /coronavirus_venv
 /corona_venv
+**/corona_dash_env
+/postgres_data
 .idea
+**/.idea
 /scripts
 response_usa.html
 CoronaScraping/CoronaScraping/spiders/test_spider.py

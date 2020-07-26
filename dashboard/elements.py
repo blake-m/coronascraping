@@ -42,6 +42,10 @@ class DataSource(abc.ABC):
     def get_pandas_dataframe_for_all_countries(self):
         pass
 
+    @abc.abstractmethod
+    def get_countries(self):
+        pass
+
 
 class JSONDataSource(DataSource):
     def load_config(self, config_path: str):
@@ -62,7 +66,8 @@ class JSONDataSource(DataSource):
                 countries_dict[key] = value
         return countries_dict
 
-    def get_pandas_dataframe_for_one_country(self, country: GraphTypes, graph_types):
+    def get_pandas_dataframe_for_one_country(self, country: GraphTypes,
+                                             graph_types):
         countries_dict = self.convert_json_list_to_dict()
         country_dict = countries_dict[country]
         df = pd.DataFrame(country_dict)
@@ -79,12 +84,16 @@ class JSONDataSource(DataSource):
                 # df.set_index(graph)
                 dfs.append(df)
         df = pd.concat(dfs)
-
-
-
-        # df = pd.DataFrame.from_dict(countries_dict, orient='index')
-        print(df)
         return df
+
+    def get_countries(self):
+        countries = []
+        for country in self.data:
+            for key in country:
+                if key != "world-population":
+                    # TODO(blake) - separate dashes and capitalize
+                    countries.append(key)
+        return countries
 
 
 class PostgresDataSource(DataSource, ABC):
@@ -108,9 +117,10 @@ class Country(object):
 
 def main():
     data_source = JSONDataSource(CONFIG_PATH)
-    # data_source.get_pandas_dataframe_for_all_countries()
-    poland = Country(data_source, CountriesAvailable.POLAND.value)
-    print(poland.data)
+    countries = data_source.get_countries()
+    print(countries)
+    # poland = Country(data_source, CountriesAvailable.POLAND.value)
+    # print(poland.data)
 
 
 if __name__ == "__main__":

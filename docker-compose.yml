@@ -1,7 +1,7 @@
 version: '3'
 
 services:
-  coronascraping:
+  corona_scraping:
     build: ./CoronaScraping
     image: corona_scraping
     container_name: corona_scraping
@@ -18,15 +18,19 @@ services:
     image: postgres:alpine
     container_name: corona_db
     volumes:
-      - pgdata:/var/lib/postgresql/data
-      - pgconf:/etc/postgresql
-      - pglog:/var/log/postgresql
+      - ./postgres_data:/var/lib/postgresql
+
+#      - pgdata:/var/lib/postgresql/data
+#      - pgconf:/etc/postgresql
+#      - pglog:/var/log/postgresql
     ports:
     - 5431:5432
     networks:
       - main_net
     environment:
       POSTGRES_PASSWORD: postgres
+      PGDATA: /var/lib/postgresql/data/pgdata
+
 
 
   db_python_manager:
@@ -73,10 +77,10 @@ services:
 networks:
   main_net:
 
-volumes:
-  pgdata:
-    driver: local
-  pgconf:
-    driver: local
-  pglog:
-    driver: local
+#volumes:
+#  pgdata:
+#    driver: local
+#  pgconf:
+#    driver: local
+#  pglog:
+#    driver: local

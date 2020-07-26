@@ -18,13 +18,18 @@ class WorldMeterSpidersExecutor:
 
     def run_process(self, spider, output_file_config, spider_config):
         process = crawler.CrawlerProcess(settings={
-            "FEEDS": output_file_config,
+            "FEEDS": {
+                output_file_config["name"]: {"format": output_file_config["format"]},
+            },
         })
         # TODO(blake): change this to a more elegant solution
         # you need to remove the previous file cause scrappy by default appends
         # to the file, not overwrites it
-        output_file = list(output_file_config)[0]
-        os.unlink(output_file)
+        output_file = output_file_config["name"]
+        try:
+            os.unlink(output_file)
+        except FileNotFoundError:
+            pass
         process.crawl(spider, spider_config)
         process.start()
         return output_file
@@ -56,12 +61,6 @@ class WorldMeterSpidersExecutor:
         if last_run_plus_one_day > time_now:
             return True
         return False
-
-    def run_all_if_not_run_today(self):
-        spider_name = "country_graphs_data_extracting_spider"
-        if not self.check_if_run_successfully_in_last_24_hours(spider_name):
-            return self.run_all()
-        return [self.configuration[spider_name]["output_file"]["name"]]
 
     def update_config_file_last_successful_run_date(self, spider_name):
         spider_last_run_config = self.configuration[spider_name]["last_run"]

@@ -5,12 +5,9 @@ import dash_html_components as html
 import plotly.graph_objects as go
 from dash.dependencies import Input, Output
 
-try:
-    from dashboard import elements
-    from dashboard.tabs import worldmap, worldtable
-except ModuleNotFoundError:
-    import elements
-    from tabs import worldmap, worldtable
+
+import elements
+from tabs import worldmap, worldtable
 
 
 CONFIG_PATH = 'config.ini'
@@ -19,18 +16,16 @@ app = dash.Dash(
     external_stylesheets=[dbc.themes.BOOTSTRAP]
 )
 
-countries = ['poland', 'uk']
+data_source = elements.JSONDataSource(CONFIG_PATH)
+countries = data_source.get_countries()
 
-# dropdown_items = [{"label": f"{country}", "value": f"{number}"} for
-#                   number, country in enumerate(countries)]
-
-dropdown_items = [{"label": f"{country}", "value": country.value} for
-                  country in elements.CountriesAvailable]
+dropdown_items = [{"label": f"{country}", "value": country} for
+                  country in countries]
 print(dropdown_items)
 select_country = dbc.Select(
     id="countries_dropdown",
     options=dropdown_items,
-    value=elements.CountriesAvailable.POLAND.value,
+    value=countries[0],
     className="custom-select",
 )
 

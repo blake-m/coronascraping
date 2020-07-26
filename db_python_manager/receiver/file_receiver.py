@@ -1,8 +1,9 @@
 import logging
 import os
 
-from flask import Flask, request, url_for, send_from_directory
+from flask import Flask, request, url_for, send_from_directory, redirect
 
+from db import process
 from receiver import settings
 
 logging.basicConfig(level=logging.DEBUG)
@@ -23,9 +24,9 @@ def upload_file():
         file = request.files['file']
         if file and allowed_file(file.filename):
             filename = file.filename
-            file.save(os.path.join(app.config['RECEIVED_FOLDER'], filename))
-            return url_for('uploaded_file',
-                           filename=filename)
+            path = os.path.join(app.config['RECEIVED_FOLDER'], filename)
+            file.save(path)
+            return redirect(url_for('start_db_process', filename=filename))
     return '''
     <!doctype html>
     <title>Upload new File</title>
@@ -37,10 +38,13 @@ def upload_file():
     '''
 
 
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(app.config['RECEIVED_FOLDER'],
-                               filename)
+@app.route('/start_db_process/<filename>')
+def start_db_process(filename):
+    logging.info(f"DB process Process started with file: {filename}")
+    process.run(filename)
+    return f"""
+    DB process Process finished with file: {filename}
+    """
 
 
 if __name__ == '__main__':
