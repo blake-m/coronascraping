@@ -98,17 +98,23 @@ class TotalCasesGraph(BaseGraph):
         ]
 
 
-class TotalCasesGraph(BaseGraph):
-    graph = "coronavirus_cases_linear"
-    title = "TOTAL CASES"
+class CasesDailyGraph(BaseGraph):
+    graph = "graph_cases_daily"
+    title = "CASES DAILY"
 
     @staticmethod
     def get_graph_data_dedicated(
             x, y) -> List[plotly.graph_objs._BaseTraceType]:
+        n = 7
+        # TODO(blake): reimplement rolling mean - it seems to be wrong
+        rolling_mean = np.cumsum(y, dtype=float)
+        rolling_mean[n:] = rolling_mean[n:] - rolling_mean[:-n]
+        rolling_mean = rolling_mean[n - 1:] / n
+
         return [
             go.Scatter(
                 x=x,
-                y=y,
+                y=rolling_mean,
                 text=y,
                 mode="lines+markers",
                 textposition=['top right'],
@@ -122,9 +128,69 @@ class TotalCasesGraph(BaseGraph):
         ]
 
 
-class CasesDailyGraph(BaseGraph):
-    graph = "graph_cases_daily"
-    title = "CASES DAILY"
+class DeathsDailyGraph(BaseGraph):
+    graph = "graph_deaths_daily"
+    title = "DEATHS DAILY"
+
+    @staticmethod
+    def get_graph_data_dedicated(
+            x, y) -> List[plotly.graph_objs._BaseTraceType]:
+        n = 7
+        # TODO(blake): reimplement rolling mean - it seems to be wrong
+        rolling_mean = np.cumsum(y, dtype=float)
+        rolling_mean[n:] = rolling_mean[n:] - rolling_mean[:-n]
+        rolling_mean = rolling_mean[n - 1:] / n
+
+        return [
+            go.Scatter(
+                x=x,
+                y=rolling_mean,
+                text=y,
+                mode="lines+markers",
+                textposition=['top right'],
+            ),
+            go.Bar(
+                x=x,
+                y=y,
+                text=y,
+                textposition='auto',
+            )
+        ]
+
+
+class ActiveCasesTotalGraph(BaseGraph):
+    graph = "graph_active_cases_total"
+    title = "ACTIVE CASES TOTAL"
+
+    @staticmethod
+    def get_graph_data_dedicated(
+            x, y) -> List[plotly.graph_objs._BaseTraceType]:
+        n = 7
+        # TODO(blake): reimplement rolling mean - it seems to be wrong
+        rolling_mean = np.cumsum(y, dtype=float)
+        rolling_mean[n:] = rolling_mean[n:] - rolling_mean[:-n]
+        rolling_mean = rolling_mean[n - 1:] / n
+
+        return [
+            go.Scatter(
+                x=x,
+                y=rolling_mean,
+                text=y,
+                mode="lines+markers",
+                textposition=['top right'],
+            ),
+            go.Bar(
+                x=x,
+                y=y,
+                text=y,
+                textposition='auto',
+            )
+        ]
+
+
+class CuredDailyGraph(BaseGraph):
+    graph = "cases_cured_daily"
+    title = "CASES CURED DAILY"
 
     @staticmethod
     def get_graph_data_dedicated(
