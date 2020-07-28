@@ -46,8 +46,6 @@ class CountryGraphsDataExtractingSpider(BaseSpider):
             yield scrapy.Request(full_country_link,
                                  callback=self.parse_country,
                                  cb_kwargs={"country": current_country})
-            # TODO(blake): remove break - it's here just to make the requests quicker
-            # break
 
     def parse_js_scripts(self, response):
         all_scripts = response.css(self.config.all_js_scripts).getall()

@@ -51,7 +51,6 @@ class WorldMeterSpidersExecutor:
         return output_files
 
     def check_if_run_successfully_in_last_24_hours(self, spider_name) -> bool:
-        print(datetime.datetime.now())
         spider_last_run_config = self.configuration[spider_name]["last_run"]
         last_run_date_str = spider_last_run_config["date"]
         last_run_date = datetime.datetime.strptime(last_run_date_str, "%Y-%m-%d %H:%M:%S.%f")

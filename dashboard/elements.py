@@ -77,11 +77,8 @@ class JSONDataSource(DataSource):
         countries_dict = self.convert_json_list_to_dict()
         dfs = []
         for country, graphs in countries_dict.items():
-            # print(key, countries_dict[key])
             for graph, data in graphs.items():
-                # print(country, graph, data)
                 df = pd.DataFrame.from_dict(data, orient='index').transpose()
-                # df.set_index(graph)
                 dfs.append(df)
         df = pd.concat(dfs)
         return df
@@ -118,7 +115,6 @@ class Country(object):
 def main():
     data_source = JSONDataSource(CONFIG_PATH)
     countries = data_source.get_countries()
-    print(countries)
     # poland = Country(data_source, CountriesAvailable.POLAND.value)
     # print(poland.data)
 

@@ -21,7 +21,7 @@ countries = data_source.get_countries()
 
 dropdown_items = [{"label": f"{country}", "value": country} for
                   country in countries]
-print(dropdown_items)
+
 select_country = dbc.Select(
     id="countries_dropdown",
     options=dropdown_items,
@@ -106,7 +106,6 @@ test_div = html.Div(children=children)
 )
 def country_graphs(value_country, value_graph):
     print(value_country, value_graph)
-    data_source = elements.JSONDataSource(CONFIG_PATH)
     country = elements.Country(data_source, value_country)
     df = country.data
     graph_types = df.columns
@@ -136,7 +135,6 @@ def country_graphs(value_country, value_graph):
         graph_ready = dcc.Graph(
             id=f"{value_country}-{graph}",
             figure=fig
-
         )
         graphs.append(graph_ready)
     return graphs

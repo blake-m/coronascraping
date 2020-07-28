@@ -26,6 +26,7 @@ def upload_file():
             filename = file.filename
             path = os.path.join(app.config['RECEIVED_FOLDER'], filename)
             file.save(path)
+            logging.info(f"Received file - path: {path}")
             return redirect(url_for('start_db_process', filename=filename))
     return '''
     <!doctype html>
