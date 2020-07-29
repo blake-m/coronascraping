@@ -20,6 +20,7 @@ class BaseGraph(abc.ABC):
         self.df = df,
         self.country = country,
         self.graph_type = graph_type
+        self.date_range = date_range
 
     def check_if_data_available(self) -> bool:
         return self.graph in self.df[0].columns
@@ -29,6 +30,11 @@ class BaseGraph(abc.ABC):
         x = graph_data_df.index
         y = graph_data_df.values
         return x, y
+
+    def get_x_and_y_axis_selected_range_data(self, x, y):
+        x_ranged = x[self.date_range[0]: self.date_range[1]]
+        y_ranged = y[self.date_range[0]: self.date_range[1]]
+        return x_ranged, y_ranged
 
     @staticmethod
     def get_graph_data_bar(
@@ -71,6 +77,7 @@ class BaseGraph(abc.ABC):
     def get_graph(self):
         if self.check_if_data_available():
             x, y = self.get_x_and_y_axis_data()
+            x, y = self.get_x_and_y_axis_selected_range_data(x, y)
             if self.graph_type == "Bar":
                 graph_data = self.get_graph_data_bar(x, y)
             elif self.graph_type == "Line":
@@ -97,6 +104,13 @@ class AdvancedBaseGraph(BaseGraph):
         x = df.index
         return x, y_axes
 
+    def get_x_and_y_axis_selected_range_data(self, x, y):
+        x_ranged = x[self.date_range[0]: self.date_range[1]]
+        y_ranged = {}
+        for graph in self.graph:
+            y_ranged[graph] = y[graph][self.date_range[0]: self.date_range[1]]
+        return x_ranged, y_ranged
+
     @staticmethod
     @abc.abstractmethod
     def get_graph_data_dedicated(
@@ -110,6 +124,7 @@ class AdvancedBaseGraph(BaseGraph):
     def get_graph(self):
         if self.check_if_data_available():
             x, y = self.get_x_and_y_axis_data()
+            x, y = self.get_x_and_y_axis_selected_range_data(x, y)
             graph_data = self.get_graph_data_dedicated(x, y)
             return self.get_figure(graph_data)
         return None
@@ -119,8 +134,8 @@ class DailyCases(AdvancedBaseGraph):
     graph = ["graph_deaths_daily", "cases_cured_daily", "graph_cases_daily"]
     title = "DAILY CASES STACKED"
 
-    @staticmethod
     def get_graph_data_dedicated(
+            self,
             x: pd.core.indexes.base.Index,
             y: Dict[str, np.array]
     ) -> List[plotly.graph_objs._BaseTraceType]:
@@ -130,16 +145,12 @@ class DailyCases(AdvancedBaseGraph):
         print("Y", type(y["graph_deaths_daily"]))
         print("X", x)
         print("Y", y)
-        n = 7
-        window = len(x) - n
 
         for graph_name in y:
             y_loaded = y[graph_name]
-            y_loaded = y_loaded[window:]
-            x_loaded = x[window:]
             graphs.append(
                 go.Bar(
-                    x=x_loaded,
+                    x=x,
                     y=y_loaded,
                     text=y_loaded,
                     textposition='auto',

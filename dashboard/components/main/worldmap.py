@@ -8,7 +8,6 @@ import plotly.graph_objects as go
 
 
 
-from components.main.country.country import DATA_SOURCE
 
 df = px.data.gapminder().query("year==2007")
 # df.to_excel("excel_TEST.xlsx")

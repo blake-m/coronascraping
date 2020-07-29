@@ -2,66 +2,66 @@ import dash_bootstrap_components as dbc
 import dash_html_components as html
 
 from components.main import worldtable, worldmap
-from components.main.country.country import countries_div, \
-    select_country, \
-    select_graph_type, \
-    select_date_range
-
-tabs = dbc.Tabs(
-    [
-        dbc.Tab(
-            label="World Map",
-            tab_id="tab-1",
-        ),
-        dbc.Tab(
-            label="World Table",
-            tab_id="tab-2",
-        ),
-        dbc.Tab(
-            label="Countries",
-            tab_id="tab-3",
-            children=[
-                html.Br(),
-                html.Div(
-                    className="container",
-                    children=[
-                        html.Div(
-                            className="row align-items-center",
-                            children=[
-                                html.Div(
-                                    className="col-8",
-                                    children=[select_country]
-                                ),
-                                html.Div(
-                                    className="col-4",
-                                    children=[select_graph_type]
-                                )]
-                        ),
-                        html.Div(
-                            className="row align-items-center",
-                            children=[
-                                html.Div(
-                                    className="col-12",
-                                    children=select_date_range
-                                )
-                            ]
-                        )
-                    ]
-                )
-            ],
-
-        ),
-    ],
-    id="card-main",
-    card=True,
-    active_tab="tab-1",
-)
+from components.main.country.country import Countries
 
 
-def switch_tab_content(active_tab):
+def tabs(countries: Countries):
+    return dbc.Tabs(
+        [
+            dbc.Tab(
+                label="World Map",
+                tab_id="tab-1",
+            ),
+            dbc.Tab(
+                label="World Table",
+                tab_id="tab-2",
+            ),
+            dbc.Tab(
+                label="Countries",
+                tab_id="tab-3",
+                children=[
+                    html.Br(),
+                    html.Div(
+                        className="container",
+                        children=[
+                            html.Div(
+                                className="row align-items-center",
+                                children=[
+                                    html.Div(
+                                        className="col-8",
+                                        children=[
+                                            countries.select_country_dropdown()]
+                                    ),
+                                    html.Div(
+                                        className="col-4",
+                                        children=[countries.select_graph_type()]
+                                    )]
+                            ),
+                            html.Div(
+                                className="row align-items-center",
+                                children=[
+                                    html.Div(
+                                        className="col-12 mt-3",
+                                        children=countries.select_date_range()
+                                    )
+                                ]
+                            )
+                        ]
+                    )
+                ],
+
+            ),
+        ],
+        id="card-main",
+        card=True,
+        active_tab="tab-1",
+    )
+
+
+def switch_tab_content(active_tab, countries: Countries):
     if active_tab == "tab-1":
         return worldmap.children
     if active_tab == "tab-2":
         return worldtable.children
     if active_tab == "tab-3":
-        return countries_div
+        return countries.countries_div()
