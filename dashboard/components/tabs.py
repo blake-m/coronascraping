@@ -4,7 +4,8 @@ import dash_html_components as html
 from components.main import worldtable, worldmap
 from components.main.country.country import countries_div, \
     select_country, \
-    select_graph_type
+    select_graph_type, \
+    select_date_range
 
 tabs = dbc.Tabs(
     [
@@ -28,12 +29,20 @@ tabs = dbc.Tabs(
                             className="row align-items-center",
                             children=[
                                 html.Div(
-                                    className="col-sm-8",
+                                    className="col-8",
                                     children=[select_country]
                                 ),
                                 html.Div(
-                                    className="col-sm-4",
+                                    className="col-4",
                                     children=[select_graph_type]
+                                )]
+                        ),
+                        html.Div(
+                            className="row align-items-center",
+                            children=[
+                                html.Div(
+                                    className="col-12",
+                                    children=select_date_range
                                 )
                             ]
                         )

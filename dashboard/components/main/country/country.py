@@ -1,9 +1,12 @@
+from typing import List
+
 import dash_html_components as html
 import dash_bootstrap_components as dbc
+import dash_core_components as dcc
 
 from components import data_source
 from components.main.country.graphs import TotalCasesGraph, CasesDailyGraph, \
-    DeathsDailyGraph, ActiveCasesTotalGraph
+    DeathsDailyGraph, ActiveCasesTotalGraph, DailyCases
 
 CONFIG_PATH = './config.ini'
 DATA_SOURCE = data_source.PostgresDataSource(CONFIG_PATH)
@@ -30,22 +33,41 @@ select_graph_type = dbc.RadioItems(
     inline=True,
 )
 
+select_date_range = dcc.RangeSlider(
+    id='date-range-slider',
+    min=0,
+    max=20,
+    step=0.5,
+    value=[5, 15]
+),
+
 countries_div = html.Div(id="graphs-div", children=[], className="container")
 
 
-def country_graphs_maker(value_country, value_graph):
-    print(value_country, value_graph)
-    df = DATA_SOURCE.get_pandas_dataframe_for_one_country(value_country)
+def country_elements_maker(
+        country: str, graph_type: str, date_range: List[int]):
+    print(country, graph_type, date_range)
+    df = DATA_SOURCE.get_pandas_dataframe_for_one_country(country)
     print(df.columns)
-    graphs = [
+    graphs_to_include_classes = [
+        DailyCases,
+        TotalCasesGraph,
+        CasesDailyGraph,
+        DeathsDailyGraph,
+        ActiveCasesTotalGraph,
+    ]
+    graphs_to_include = [
+        graph_class(df, country, graph_type, date_range).get_graph()
+        for graph_class in graphs_to_include_classes
+    ]
+
+    # Clean out graphs that returned None
+    graphs_to_include = [
+        graph for graph in graphs_to_include if graph is not None]
+
+    elements = [
         # TODO(blake): implement a div with basic info
         html.H3(f"Total Cases: {'214214123'}"),
-        TotalCasesGraph(df, value_country, value_graph).get_graph(),
-        CasesDailyGraph(df, value_country, value_graph).get_graph(),
-        DeathsDailyGraph(df, value_country, value_graph).get_graph(),
-        ActiveCasesTotalGraph(df, value_country, value_graph).get_graph(),
-
+        *graphs_to_include,
     ]
-    graphs = [graph for graph in graphs if graph is not None]
-
-    return graphs
+    return elements

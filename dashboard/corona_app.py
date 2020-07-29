@@ -1,9 +1,12 @@
+from typing import List
+
 import dash
 import dash_bootstrap_components as dbc
+import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, ALL, State
 
-from components.main.country.country import country_graphs_maker
+from components.main.country.country import country_elements_maker
 from components.tabs import tabs, switch_tab_content
 
 
@@ -14,9 +17,14 @@ def create_app():
         [
             dbc.CardHeader(tabs),
             dbc.CardBody(
-                html.Div(
-                    id="card-content",
-                    className="container-fluid card-text"
+                className="align-middle",
+                children=dcc.Loading(
+                    id='card-body-loading',
+                    fullscreen=True,
+                    children=[html.Div(
+                        id="card-content",
+                        className="container-fluid card-text"
+                    )]
                 )
             ),
         ]
@@ -24,11 +32,14 @@ def create_app():
 
     @app.callback(
         Output("graphs-div", "children"),
-        [Input("countries_dropdown", "value"),
-         Input("radio_graph_type", "value")]
+        [
+            Input("countries_dropdown", "value"),
+            Input("radio_graph_type", "value"),
+            Input("date-range-slider", "value"),
+        ],
     )
-    def country_graphs(value_country, value_graph):
-        return country_graphs_maker(value_country, value_graph)
+    def country_elements(country: str, graph_type: str, date_range: List[int]):
+        return country_elements_maker(country, graph_type, date_range)
 
     @app.callback(
         Output("card-content", "children"),
