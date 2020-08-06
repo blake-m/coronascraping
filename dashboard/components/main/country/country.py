@@ -1,12 +1,12 @@
-from typing import List
-
-import dash_html_components as html
-import dash_bootstrap_components as dbc
-import dash_core_components as dcc
+from typing import List, Union
 
 from components import data_source
 from components.main.country.graphs import TotalCasesGraph, CasesDailyGraph, \
     DeathsDailyGraph, ActiveCasesTotalGraph, DailyCases
+
+import dash_html_components as html
+import dash_bootstrap_components as dbc
+import dash_core_components as dcc
 
 CONFIG_PATH = './config.ini'
 
@@ -15,16 +15,32 @@ class Countries(object):
     def __init__(self):
         self.data_source = data_source.PostgresDataSource(CONFIG_PATH)
         self.list_all = self.data_source.get_countries()
-        self.current = self.data_source.get_pandas_dataframe_for_one_country(
-            self.list_all[0])
+        self.current_country_data = \
+            self.data_source.get_pandas_dataframe_for_one_country(
+                self.list_all[0]
+            )
+        self.current_country_name = self.list_all[0]
 
     def set_current_country(self, country: str) -> None:
-        self.current = self.data_source.get_pandas_dataframe_for_one_country(
-            country)
+        self.current_country_data = \
+            self.data_source.get_pandas_dataframe_for_one_country(country)
+        self.current_country_name = country
+
+    @staticmethod
+    def correct_country_name(country: str) -> str:
+        if country in ["uk", "us"]:
+            return country.upper()
+        else:
+            name_parts = country.split("_")
+            name_parts = [
+                part.capitalize() if part not in ["the", "and", "of"] else part
+                for part in name_parts
+            ]
+            return " ".join(name_parts)
 
     def select_country_dropdown(self):
         dropdown_items = [
-            {"label": f"{country}", "value": country}
+            {"label": f"{self.correct_country_name(country)}", "value": country}
             for country in self.list_all
         ]
 
@@ -49,8 +65,8 @@ class Countries(object):
         )
 
     def select_date_range(self):
-        labels = self.current.index
-        range_size = len(self.current.index)
+        labels = self.current_country_data.index
+        range_size = len(self.current_country_data.index)
         value_range = list(range(range_size))
         print("value_range", value_range)
         min_value = min(value_range)
@@ -71,14 +87,115 @@ class Countries(object):
             value=[min_value, max_value]
         )
 
-    def countries_div(self):
+    def countries_div(self) -> html.Div:
         return html.Div(id="graphs-div", children=[], className="container")
+
+    def basic_info(self) -> html.Div:
+        country = self.current_country_name
+        data = self.current_country_data
+        cases_total = int(data['coronavirus_cases_linear'].values[-1])
+        active_cases = int(data['graph_active_cases_total'].values[-1])
+        deaths = int(data['coronavirus_deaths_linear'].values[-1])
+        first_case = data.index[data['graph_cases_daily'] != 0][0]
+        daily_peak = int(data['graph_cases_daily'].values.max())
+        recovered_total = cases_total - active_cases - deaths
+        last_data = data.index[-1]
+
+        def metric_and_value_div(
+                metric: str, value: Union[str, int]) -> html.Div:
+            return html.Div(
+                className="col",
+                children=[
+                    html.H5(
+                        className="card-title",
+                        children=f"{metric}"
+                    ),
+                    html.P(
+                        children=[
+                            f"{value}"
+                        ]
+                    ),
+                ]
+            )
+
+        return html.Div(
+            className="card text-center",
+            children=[
+                html.Div(
+                    className="card-header text-white bg-primary",
+                    children=[
+                        html.H5(
+                            className="card-title",
+                            children=self.correct_country_name(country)
+                        ),
+                        html.P(
+                            style={"margin-bottom": 0},
+                            children=[
+                                "Basic Information"
+                            ]
+                        ),
+                    ]
+                ),
+                html.Div(
+                    className="card-body",
+                    children=[
+                        html.Div(
+                            className="row",
+                            children=[
+                                metric_and_value_div(
+                                    metric="Cases Total",
+                                    value=cases_total
+                                ),
+                                metric_and_value_div(
+                                    metric="Active Cases",
+                                    value=active_cases
+                                ),
+                                metric_and_value_div(
+                                    metric="Deaths",
+                                    value=deaths
+                                ),
+                            ]
+                        ),
+                        html.Div(
+                            className="row",
+                            children=[
+                                metric_and_value_div(
+                                    metric="Recovered",
+                                    value=recovered_total
+                                ),
+                                metric_and_value_div(
+                                    metric="First Case",
+                                    value=first_case
+                                ),
+                                metric_and_value_div(
+                                    metric="Daily Peak",
+                                    value=daily_peak
+                                ),
+                            ]
+                        ),
+                        html.P(
+                            className="text-muted",
+                            style={"margin-bottom": 0},
+                            children=[
+                                f"Latest data comes from: {last_data}"
+                            ]
+                        )
+                    ]
+                ),
+                # html.Div(
+                #     className="card-footer text-muted",
+                #     children=[
+                #         f"Latest data comes from: Monday"
+                #     ]
+                # )
+            ]
+        )
 
     def elements_maker(
             self, country: str, graph_type: str, date_range: List[int]):
         print(country, graph_type, date_range)
         self.set_current_country(country)
-        df = self.current
+        df = self.current_country_data
         print(df.columns)
         graphs_to_include_classes = [
             DailyCases,
@@ -98,7 +215,7 @@ class Countries(object):
 
         elements = [
             # TODO(blake): implement a div with basic info
-            html.H3(f"Total Cases: {'214214123'}"),
+            self.basic_info(),
             *graphs_to_include,
         ]
         return elements

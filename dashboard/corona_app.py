@@ -4,7 +4,7 @@ import dash
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output, ALL, State
+from dash.dependencies import Input, Output
 
 from components.tabs import tabs, switch_tab_content
 
@@ -20,10 +20,12 @@ def create_app(countries):
                 children=dcc.Loading(
                     id='card-body-loading',
                     fullscreen=True,
-                    children=[html.Div(
-                        id="card-content",
-                        className="container-fluid card-text"
-                    )]
+                    children=[
+                        html.Div(
+                            id="card-content",
+                            className="container-fluid card-text"
+                        ),
+                    ]
                 )
             ),
         ]

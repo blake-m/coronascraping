@@ -1,6 +1,10 @@
 from components.main.country.country import Countries
 from corona_app import create_app
 
+import plotly.io as pio
+
+pio.templates.default = "plotly_dark"
+
 
 def main():
     countries = Countries()
