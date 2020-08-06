@@ -1,13 +1,10 @@
 import dash_core_components as dcc
-import pandas as pd
 
 import plotly.express as px
-import plotly.graph_objects as go
 
+from components import template
 
-
-
-
+template.bootstrap()
 
 df = px.data.gapminder().query("year==2007")
 # df.to_excel("excel_TEST.xlsx")
@@ -19,7 +16,8 @@ fig = px.choropleth(df, locations="iso_alpha",
                     # color="graph_cases_daily", # lifeExp is a column of gapminder
                     color="lifeExp",
                     # hover_name="country", # column to add to hover information
-                    color_continuous_scale=px.colors.sequential.Plasma)
+                    # color_continuous_scale=px.colors.sequential.Plasma
+                    )
 
 # fig = go.Figure(data=fig)
 # # fig.update_layout(title_text=f'{self.title}')

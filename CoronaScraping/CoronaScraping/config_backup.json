@@ -1,24 +1,23 @@
 {
-  "country_graphs_data_extracting_spider": {
-    "name": "countries",
-    "last_run": {
-      "date": "2020-07-23 15:19:31.993472"
-    },
-    "output_file": {
-      "worldmeter.json": {
-        "format": "json"
-      }
-    },
-    "configuration": {
-      "start_urls": [
-        "https://www.worldometers.info/coronavirus/"
-      ],
-      "countries_table": "#main_table_countries_today",
-      "chart_indicator": "Highcharts",
-      "all_js_scripts": "script[type=\"text/javascript\"]::text",
-      "graph_type": "arguments string::text",
-      "x_axis": "//property[contains(@name, \"categories\")]//string/text()",
-      "y_axis": "//property[contains(@name, \"data\")]//number/@value"
+    "country_graphs_data_extracting_spider": {
+        "name": "countries",
+        "last_run": {
+            "date": "2020-08-03 16:05:14.921874"
+        },
+        "output_file": {
+            "name": "worldmeter.json",
+            "format": "json"
+        },
+        "configuration": {
+            "start_urls": [
+                "https://www.worldometers.info/coronavirus/"
+            ],
+            "countries_table": "#main_table_countries_today",
+            "chart_indicator": "Highcharts",
+            "all_js_scripts": "script[type=\"text/javascript\"]::text",
+            "graph_type": "arguments string::text",
+            "x_axis": "//property[contains(@name, \"categories\")]//string/text()",
+            "y_axis": "//property[contains(@name, \"data\")]//number/@value"
+        }
     }
-  }
 }

@@ -57,9 +57,13 @@ class CountryGraphsDataExtractingSpider(BaseSpider):
 
     def parse_graph_data(self, selector):
         graph_type = selector.css(self.config.graph_type).getall()[0]
-        x_axis = selector.xpath(self.config.x_axis).getall()
-        y_axis = selector.xpath(self.config.y_axis).getall()
-        return graph_type, x_axis, y_axis
+        x_axis = selector.xpath('//property[contains(@name, "categories")]//string/text()').getall()
+        y_axis = selector.css("property[name=data]")[0]
+        y_axis = y_axis.css("property[name=data] array *")
+        ys = []
+        for y in y_axis:
+            ys.append(y.css("number::attr(value)").get(default="0"))
+        return graph_type, x_axis, ys
 
     @staticmethod
     def form_graph_data_dict(x_axis, y_axis):

@@ -19,12 +19,13 @@ class Inserter(object):
             if clean_start:
                 self.db.run_query(f"DROP TABLE {country}")
 
+            self.db.create_table(
+                table_name=country,
+                columns=[(column, 'float', '')
+                         for column in df_country.columns]
+            )
+
             for index, row in df_country.iterrows():
-                self.db.create_table(
-                    table_name=country,
-                    columns=[(column, 'float', '')
-                             for column in df_country.columns]
-                )
                 values = list(row.values)
                 values = [
                     value if type(value) is str else '0' for value in values

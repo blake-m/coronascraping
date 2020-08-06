@@ -9,4 +9,4 @@ def run(path):
     database.connect("coronavirus")
     data_source = JSONDataSource(path)
     db_inserter = Inserter(data_source=data_source, db=database)
-    db_inserter.insert(clean_start=False)
+    db_inserter.insert(clean_start=True)

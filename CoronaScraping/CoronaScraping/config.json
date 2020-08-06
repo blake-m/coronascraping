@@ -2,7 +2,7 @@
     "country_graphs_data_extracting_spider": {
         "name": "countries",
         "last_run": {
-            "date": "2020-07-28 10:20:09.355059"
+            "date": "2020-08-06 06:40:21.885675"
         },
         "output_file": {
             "name": "worldmeter.json",
@@ -15,9 +15,7 @@
             "countries_table": "#main_table_countries_today",
             "chart_indicator": "Highcharts",
             "all_js_scripts": "script[type=\"text/javascript\"]::text",
-            "graph_type": "arguments string::text",
-            "x_axis": "//property[contains(@name, \"categories\")]//string/text()",
-            "y_axis": "//property[contains(@name, \"data\")]//number/@value"
+            "graph_type": "arguments string::text"
         }
     }
 }

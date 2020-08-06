@@ -7,9 +7,12 @@ import pandas as pd
 import plotly
 import plotly.graph_objects as go
 
+ROLLING_MEAN_LINE_WIDTH = 4
+
 
 class BaseGraph(abc.ABC):
     graph = [""]
+    graph_name = ""
     title = ""
 
     def __init__(self,
@@ -42,8 +45,7 @@ class BaseGraph(abc.ABC):
         return [go.Bar(
             x=x,
             y=y,
-            text=y,
-            textposition='auto',
+
         )]
 
     @staticmethod
@@ -52,9 +54,8 @@ class BaseGraph(abc.ABC):
         return [go.Scatter(
             x=x,
             y=y,
-            text=y,
-            mode="lines+markers",
-            textposition=['top right'],
+            mode="lines",
+            line_width=ROLLING_MEAN_LINE_WIDTH,
         )]
 
     @staticmethod
@@ -65,6 +66,13 @@ class BaseGraph(abc.ABC):
     def get_figure(self, data):
         fig = go.Figure(data=data)
         fig.update_layout(title_text=f'{self.title}')
+        fig.update_layout(legend={
+            "orientation": "h",
+            "yanchor": "bottom",
+            "y": 1.02,
+            "xanchor": "right",
+            "x": 1
+        })
         graph_ready = dcc.Graph(
             id={
                 "type": "country-graph",
@@ -90,6 +98,7 @@ class BaseGraph(abc.ABC):
 
 class AdvancedBaseGraph(BaseGraph):
     graph = [""]
+    graph_name = [""]
     title = ""
 
     def check_if_data_available(self) -> bool:
@@ -131,7 +140,16 @@ class AdvancedBaseGraph(BaseGraph):
 
 
 class DailyCases(AdvancedBaseGraph):
-    graph = ["graph_deaths_daily", "cases_cured_daily", "graph_cases_daily"]
+    graph = [
+        "graph_cases_daily",
+        "cases_cured_daily",
+        "graph_deaths_daily",
+    ]
+    graph_name = [
+        "New Cases",
+        "Cases Cured",
+        "Deaths",
+    ]
     title = "DAILY CASES STACKED"
 
     def get_graph_data_dedicated(
@@ -140,20 +158,13 @@ class DailyCases(AdvancedBaseGraph):
             y: Dict[str, np.array]
     ) -> List[plotly.graph_objs._BaseTraceType]:
         graphs = []
-        print("X", type(x))
-        print("Y", type(y))
-        print("Y", type(y["graph_deaths_daily"]))
-        print("X", x)
-        print("Y", y)
 
-        for graph_name in y:
-            y_loaded = y[graph_name]
+        for graph_type, graph_name in zip(y, self.graph_name):
+            y_loaded = y[graph_type]
             graphs.append(
                 go.Bar(
                     x=x,
                     y=y_loaded,
-                    text=y_loaded,
-                    textposition='auto',
                     name=graph_name,
                 )
             )
@@ -163,6 +174,13 @@ class DailyCases(AdvancedBaseGraph):
         fig = go.Figure(data=data)
         fig.update_layout(title_text=f'{self.title}')
         fig.update_layout(barmode='stack')
+        fig.update_layout(legend={
+            "orientation": "h",
+            "yanchor": "bottom",
+            "y": 1.02,
+            "xanchor": "right",
+            "x": 1
+        })
         graph_ready = dcc.Graph(
             id={
                 "type": "country-graph",
@@ -175,148 +193,64 @@ class DailyCases(AdvancedBaseGraph):
 
 class TotalCasesGraph(BaseGraph):
     graph = "coronavirus_cases_linear"
+    graph_name = ""
     title = "TOTAL CASES"
 
-    @staticmethod
     def get_graph_data_dedicated(
-            x, y) -> List[plotly.graph_objs._BaseTraceType]:
+            self, x, y) -> List[plotly.graph_objs._BaseTraceType]:
         return [
             go.Bar(
                 x=x,
                 y=y,
-                text=y,
-                textposition='auto',
+                name=self.graph_name,
             )
         ]
 
-    def get_figure(self, data):
-        fig = go.Figure(data=data)
-        fig.update_layout(title_text=f'{self.title}')
-        graph_ready = dcc.Graph(
-            id={
-                "type": "country-graph",
-                "index": f"{self.country}-{self.graph}"
-            },
-            figure=fig
+
+class BarAndRollingMeanBaseGraph(BaseGraph):
+    def get_graph_data_dedicated(
+            self, x, y) -> List[plotly.graph_objs._BaseTraceType]:
+        rolling_mean_window = 7
+        rolling_mean = np.convolve(
+            y,
+            np.ones((rolling_mean_window,)) / rolling_mean_window, mode='full'
         )
-        return graph_ready
+
+        return [
+            go.Bar(
+                x=x,
+                y=y,
+                name=self.graph_name
+            ),
+            go.Scatter(
+                x=x,
+                y=rolling_mean,
+                mode="lines",
+                line_width=ROLLING_MEAN_LINE_WIDTH,
+                name=f"Rolling Mean {rolling_mean_window} Days"
+            ),
+        ]
 
 
-class CasesDailyGraph(BaseGraph):
+class CasesDailyGraph(BarAndRollingMeanBaseGraph):
     graph = "graph_cases_daily"
+    graph_name = "New Cases"
     title = "CASES DAILY"
 
-    @staticmethod
-    def get_graph_data_dedicated(
-            x, y) -> List[plotly.graph_objs._BaseTraceType]:
-        n = 7
-        # TODO(blake): reimplement rolling mean - it seems to be wrong
-        rolling_mean = np.cumsum(y, dtype=float)
-        rolling_mean[n:] = rolling_mean[n:] - rolling_mean[:-n]
-        rolling_mean = rolling_mean[n - 1:] / n
 
-        return [
-            go.Scatter(
-                x=x,
-                y=rolling_mean,
-                text=y,
-                mode="lines+markers",
-                textposition=['top right'],
-            ),
-            go.Bar(
-                x=x,
-                y=y,
-                text=y,
-                textposition='auto',
-            )
-        ]
-
-
-class DeathsDailyGraph(BaseGraph):
+class DeathsDailyGraph(BarAndRollingMeanBaseGraph):
     graph = "graph_deaths_daily"
+    graph_name = "Deaths"
     title = "DEATHS DAILY"
 
-    @staticmethod
-    def get_graph_data_dedicated(
-            x, y) -> List[plotly.graph_objs._BaseTraceType]:
-        n = 7
-        # TODO(blake): reimplement rolling mean - it seems to be wrong
-        rolling_mean = np.cumsum(y, dtype=float)
-        rolling_mean[n:] = rolling_mean[n:] - rolling_mean[:-n]
-        rolling_mean = rolling_mean[n - 1:] / n
 
-        return [
-            go.Scatter(
-                x=x,
-                y=rolling_mean,
-                text=y,
-                mode="lines+markers",
-                textposition=['top right'],
-            ),
-            go.Bar(
-                x=x,
-                y=y,
-                text=y,
-                textposition='auto',
-            )
-        ]
-
-
-class ActiveCasesTotalGraph(BaseGraph):
+class ActiveCasesTotalGraph(BarAndRollingMeanBaseGraph):
     graph = "graph_active_cases_total"
+    graph_name = "Active Cases"
     title = "ACTIVE CASES TOTAL"
 
-    @staticmethod
-    def get_graph_data_dedicated(
-            x, y) -> List[plotly.graph_objs._BaseTraceType]:
-        n = 7
-        # TODO(blake): reimplement rolling mean - it seems to be wrong
-        rolling_mean = np.cumsum(y, dtype=float)
-        rolling_mean[n:] = rolling_mean[n:] - rolling_mean[:-n]
-        rolling_mean = rolling_mean[n - 1:] / n
 
-        return [
-            go.Scatter(
-                x=x,
-                y=rolling_mean,
-                text=y,
-                mode="lines+markers",
-                textposition=['top right'],
-            ),
-            go.Bar(
-                x=x,
-                y=y,
-                text=y,
-                textposition='auto',
-            )
-        ]
-
-
-class CuredDailyGraph(BaseGraph):
+class CuredDailyGraph(BarAndRollingMeanBaseGraph):
     graph = "cases_cured_daily"
+    graph_name = "Cases Cured"
     title = "CASES CURED DAILY"
-
-    @staticmethod
-    def get_graph_data_dedicated(
-            x, y) -> List[plotly.graph_objs._BaseTraceType]:
-        n = 7
-        # TODO(blake): reimplement rolling mean - it seems to be wrong
-        rolling_mean = np.cumsum(y, dtype=float)
-        rolling_mean[n:] = rolling_mean[n:] - rolling_mean[:-n]
-        rolling_mean = rolling_mean[n - 1:] / n
-
-        return [
-            go.Scatter(
-                x=x,
-                y=rolling_mean,
-                text=y,
-                mode="lines+markers",
-                textposition=['top right'],
-            ),
-            go.Bar(
-                x=x,
-                y=y,
-                text=y,
-                textposition='auto',
-            )
-        ]
