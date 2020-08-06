@@ -63,8 +63,7 @@ class BaseGraph(abc.ABC):
     def get_graph_data_dedicated(x, y):
         pass
 
-    def get_figure(self, data):
-        fig = go.Figure(data=data)
+    def update_figure_layout(self, fig: go.Figure) -> go.Figure:
         fig.update_layout(title_text=f'{self.title}')
         fig.update_layout(legend={
             "orientation": "h",
@@ -73,6 +72,17 @@ class BaseGraph(abc.ABC):
             "xanchor": "right",
             "x": 1
         })
+        fig.update_layout(
+            margin={
+                "l": 20,
+                "r": 20,
+            },
+        )
+        return fig
+
+    def get_figure(self, data):
+        fig = go.Figure(data=data)
+        fig = self.update_figure_layout(fig)
         graph_ready = dcc.Graph(
             id={
                 "type": "country-graph",
@@ -126,10 +136,6 @@ class AdvancedBaseGraph(BaseGraph):
             x, y) -> List[plotly.graph_objs._BaseTraceType]:
         pass
 
-    @abc.abstractmethod
-    def get_figure(self, data):
-        pass
-
     def get_graph(self):
         if self.check_if_data_available():
             x, y = self.get_x_and_y_axis_data()
@@ -170,25 +176,10 @@ class DailyCases(AdvancedBaseGraph):
             )
         return graphs
 
-    def get_figure(self, data):
-        fig = go.Figure(data=data)
-        fig.update_layout(title_text=f'{self.title}')
-        fig.update_layout(barmode='stack')
-        fig.update_layout(legend={
-            "orientation": "h",
-            "yanchor": "bottom",
-            "y": 1.02,
-            "xanchor": "right",
-            "x": 1
-        })
-        graph_ready = dcc.Graph(
-            id={
-                "type": "country-graph",
-                "index": f"{self.country}-{self.graph}"
-            },
-            figure=fig
-        )
-        return graph_ready
+    def update_figure_layout(self, fig: go.Figure) -> go.Figure:
+        fig_updated = super().update_figure_layout(fig)
+        fig_updated.update_layout(barmode='stack')
+        return fig_updated
 
 
 class TotalCasesGraph(BaseGraph):
