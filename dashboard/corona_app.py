@@ -19,11 +19,11 @@ def create_app(countries):
                 className="align-middle",
                 children=dcc.Loading(
                     id='card-body-loading',
-                    fullscreen=True,
+                    className="align-middle",
                     children=[
                         html.Div(
                             id="card-content",
-                            className="container-fluid card-text"
+                            className="container-fluid",
                         ),
                     ]
                 )

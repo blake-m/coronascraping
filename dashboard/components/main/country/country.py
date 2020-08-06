@@ -88,7 +88,12 @@ class Countries(object):
         )
 
     def countries_div(self) -> html.Div:
-        return html.Div(id="graphs-div", children=[], className="container")
+        return html.Div(
+            id="graphs-div",
+            children=[],
+            className="container",
+            style={"min-height": "500px"},
+        )
 
     def basic_info(self) -> html.Div:
         country = self.current_country_name

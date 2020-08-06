@@ -19,6 +19,8 @@ fig = px.choropleth(df, locations="iso_alpha",
                     # color_continuous_scale=px.colors.sequential.Plasma
                     )
 
+fig.update_layout(margin=dict(l=0, r=0, t=0, b=0))
+
 # fig = go.Figure(data=fig)
 # # fig.update_layout(title_text=f'{self.title}')
 # graph_ready = dcc.Graph(
