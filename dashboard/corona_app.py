@@ -1,14 +1,13 @@
-import textwrap
+from time import sleep
 from typing import List
 
 import dash
 import dash_bootstrap_components as dbc
 import dash_html_components as html
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 
 from components.main import worldmap, worldtable
-from components.main.country.graphs import DailyCases, TotalCasesGraph, \
-    CasesDailyGraph, DeathsDailyGraph, ActiveCasesTotalGraph
+from components.main.country import graphs
 from components.tabs import tabs
 
 
@@ -38,40 +37,94 @@ def create_app(countries):
         countries.set_current_country(country)
         return countries.select_date_range()
 
+    # Graphs section ##############################################
+    # Callbacks need to be created upfront, hence no dynamic creation
     graph_classes = [
-        "DailyCases",
-        "TotalCasesGraph",
-        "CasesDailyGraph",
-        "DeathsDailyGraph",
-        "ActiveCasesTotalGraph",
+        graphs.DailyCases,
+        graphs.TotalCasesGraph,
+        graphs.CasesDailyGraph,
+        graphs.DeathsDailyGraph,
+        graphs.ActiveCasesTotalGraph,
     ]
 
-    for graph_class in graph_classes:
-        exec(textwrap.dedent(
-            f"""
-            @app.callback(
-            Output(f"{graph_class}-div", "children"),
-                [
-                    Input("countries_dropdown", "value"),
-                    Input("radio_graph_type", "value"),
-                    Input("date-range-slider", "value"),
-                ]
-            )
-            def country_elements(country: str, graph_type: str,
-                                 date_range: List[int]):
-                return [
-                    {graph_class}(countries.current_country_data, country,
-                                           graph_type, date_range).get_graph()]
-                """
-            )
-        )
+    @app.callback(
+        Output(f"{graphs.DailyCases.__name__}-div", "children"),
+        [
+            Input("countries_dropdown", "value"),
+            Input("radio_graph_type", "value"),
+            Input("date-range-slider", "value"),
+        ]
+    )
+    def country_elements(country: str, graph_type: str,
+                         date_range: List[int]):
+        return [
+            graphs.DailyCases(countries.current_country_data, country,
+                              graph_type, date_range).get_graph()]
+
+    @app.callback(
+        Output(f"{graphs.TotalCasesGraph.__name__}-div", "children"),
+        [
+            Input("countries_dropdown", "value"),
+            Input("radio_graph_type", "value"),
+            Input("date-range-slider", "value"),
+        ]
+    )
+    def country_elements(country: str, graph_type: str,
+                         date_range: List[int]):
+        return [
+            graphs.TotalCasesGraph(countries.current_country_data, country,
+                                   graph_type, date_range).get_graph()]
+
+    @app.callback(
+        Output(f"{graphs.CasesDailyGraph.__name__}-div", "children"),
+        [
+            Input("countries_dropdown", "value"),
+            Input("radio_graph_type", "value"),
+            Input("date-range-slider", "value"),
+        ]
+    )
+    def country_elements(country: str, graph_type: str,
+                         date_range: List[int]):
+        return [
+            graphs.CasesDailyGraph(countries.current_country_data, country,
+                                   graph_type, date_range).get_graph()]
+
+    @app.callback(
+        Output(f"{graphs.DeathsDailyGraph.__name__}-div", "children"),
+        [
+            Input("countries_dropdown", "value"),
+            Input("radio_graph_type", "value"),
+            Input("date-range-slider", "value"),
+        ]
+    )
+    def country_elements(country: str, graph_type: str,
+                         date_range: List[int]):
+        return [
+            graphs.DeathsDailyGraph(countries.current_country_data, country,
+                                    graph_type, date_range).get_graph()]
+
+    @app.callback(
+        Output(f"{graphs.ActiveCasesTotalGraph.__name__}-div", "children"),
+        [
+            Input("countries_dropdown", "value"),
+            Input("radio_graph_type", "value"),
+            Input("date-range-slider", "value"),
+        ]
+    )
+    def country_elements(country: str, graph_type: str,
+                         date_range: List[int]):
+        return [
+            graphs.ActiveCasesTotalGraph(countries.current_country_data,
+                                         country,
+                                         graph_type, date_range).get_graph()]
+
+    ###########################################################################
 
     @app.callback(
         Output("card-content", "children"),
         [Input("card-main", "active_tab")]
     )
     def tab_content(active_tab):
-        # TODO(blake): export it back to tabs module
         if active_tab == "tab-1":
             return worldmap.children
         if active_tab == "tab-2":
