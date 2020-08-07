@@ -38,8 +38,6 @@ class BaseGraph(abc.ABC):
         # +1 makes the range full and avoids skipping last value
         x_ranged = x[self.date_range[0]: self.date_range[1]+1]
         y_ranged = y[self.date_range[0]: self.date_range[1]+1]
-        print("y_ranged", y_ranged)
-        print("y", y)
         return x_ranged, y_ranged
 
     @staticmethod

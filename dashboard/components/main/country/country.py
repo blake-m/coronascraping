@@ -70,11 +70,8 @@ class Countries(object):
         labels = self.current_country_data.index
         range_size = len(self.current_country_data.index)
         value_range = list(range(range_size))
-        print("value_range", value_range)
         min_value = min(value_range)
         max_value = max(value_range)
-        print(min_value, max_value)
-        print(min_value, type(max_value))
 
         mark_values = np.linspace(start=0, stop=max_value, num=10, dtype=int)
         marks = {
@@ -91,170 +88,173 @@ class Countries(object):
             value=[min_value, max_value]
         )
 
-    def countries_div(self) -> html.Div:
-        return dcc.Loading(
-            id="loading-table",
+    def countries_div(self, graph_classes: List[str]) -> html.Div:
+        return html.Div(
+            id="countries-content",
             children=[
                 html.Div(
-                    id="countries-content",
+                    id="graphs",
                     children=[
-                        html.Div(
-                            id="graphs"
-                        )
-                    ],
-                    className="container",
-                    style={"min-height": "500px"},
+                        dcc.Loading(
+                            id="loading-table",
+                            children=[
+                                html.Div(id=f"{graph}-div",
+                                         style={"min-height": "100px"})
+                            ]
+                        ) for graph in graph_classes
+                    ]
                 )
             ],
-            type="cube",
+            className="container",
+            style={"min-height": "500px"},
         )
 
-    def basic_info(self) -> html.Div:
-        country = self.current_country_name
-        data = self.current_country_data
-        not_available_message = "Data Not Available"
 
-        try:
-            cases_total = int(data['coronavirus_cases_linear'].values[-1])
-        except KeyError:
-            cases_total = not_available_message
+def basic_info(self) -> html.Div:
+    country = self.current_country_name
+    data = self.current_country_data
+    not_available_message = "Data Not Available"
 
-        try:
-            active_cases = int(data['graph_active_cases_total'].values[-1])
-        except KeyError:
-            active_cases = not_available_message
+    try:
+        cases_total = int(data['coronavirus_cases_linear'].values[-1])
+    except KeyError:
+        cases_total = not_available_message
 
-        try:
-            deaths = int(data['coronavirus_deaths_linear'].values[-1])
-        except KeyError:
-            deaths = not_available_message
+    try:
+        active_cases = int(data['graph_active_cases_total'].values[-1])
+    except KeyError:
+        active_cases = not_available_message
 
-        try:
-            first_case = data.index[data['graph_cases_daily'] != 0][0]
-        except KeyError:
-            first_case = not_available_message
+    try:
+        deaths = int(data['coronavirus_deaths_linear'].values[-1])
+    except KeyError:
+        deaths = not_available_message
 
-        try:
-            daily_peak = int(data['graph_cases_daily'].values.max())
-        except KeyError:
-            daily_peak = not_available_message
+    try:
+        first_case = data.index[data['graph_cases_daily'] != 0][0]
+    except KeyError:
+        first_case = not_available_message
 
-        try:
-            recovered_total = cases_total - active_cases - deaths
-        except TypeError:
-            recovered_total = not_available_message
+    try:
+        daily_peak = int(data['graph_cases_daily'].values.max())
+    except KeyError:
+        daily_peak = not_available_message
 
-        last_data = data.index[-1]
+    try:
+        recovered_total = cases_total - active_cases - deaths
+    except TypeError:
+        recovered_total = not_available_message
 
-        def metric_and_value_div(
-                metric: str, value: Union[str, int]) -> html.Div:
-            return html.Div(
-                className="col",
-                children=[
-                    html.H5(
-                        className="card-title",
-                        children=f"{metric}"
-                    ),
-                    html.P(
-                        children=[
-                            f"{value}"
-                        ]
-                    ),
-                ]
-            )
+    last_data = data.index[-1]
 
+    def metric_and_value_div(
+            metric: str, value: Union[str, int]) -> html.Div:
         return html.Div(
-            className="card text-center",
+            className="col",
             children=[
-                html.Div(
-                    className="card-header text-white bg-primary",
-                    children=[
-                        html.H5(
-                            className="card-title",
-                            children=self.correct_country_name(country)
-                        ),
-                        html.P(
-                            style={"margin-bottom": 0},
-                            children=[
-                                "Basic Information"
-                            ]
-                        ),
-                    ]
+                html.H5(
+                    className="card-title",
+                    children=f"{metric}"
                 ),
-                html.Div(
-                    className="card-body",
+                html.P(
                     children=[
-                        html.Div(
-                            className="row",
-                            children=[
-                                metric_and_value_div(
-                                    metric="Cases Total",
-                                    value=cases_total
-                                ),
-                                metric_and_value_div(
-                                    metric="Active Cases",
-                                    value=active_cases
-                                ),
-                                metric_and_value_div(
-                                    metric="Deaths",
-                                    value=deaths
-                                ),
-                            ]
-                        ),
-                        html.Div(
-                            className="row",
-                            children=[
-                                metric_and_value_div(
-                                    metric="Recovered",
-                                    value=recovered_total
-                                ),
-                                metric_and_value_div(
-                                    metric="First Case",
-                                    value=first_case
-                                ),
-                                metric_and_value_div(
-                                    metric="Daily Peak",
-                                    value=daily_peak
-                                ),
-                            ]
-                        ),
-                        html.P(
-                            className="text-muted",
-                            style={"margin-bottom": 0},
-                            children=[
-                                f"Latest data comes from: {last_data}"
-                            ]
-                        )
+                        f"{value}"
                     ]
                 ),
             ]
         )
 
-    def elements_maker(
-            self, country: str, graph_type: str, date_range: List[int]):
-        print(country, graph_type, date_range)
-        self.set_current_country(country)
-        df = self.current_country_data
-        print(df.columns)
-        graphs_to_include_classes = [
-            DailyCases,
-            TotalCasesGraph,
-            CasesDailyGraph,
-            DeathsDailyGraph,
-            ActiveCasesTotalGraph,
+    return html.Div(
+        className="card text-center",
+        children=[
+            html.Div(
+                className="card-header text-white bg-primary",
+                children=[
+                    html.H5(
+                        className="card-title",
+                        children=self.correct_country_name(country)
+                    ),
+                    html.P(
+                        style={"margin-bottom": 0},
+                        children=[
+                            "Basic Information"
+                        ]
+                    ),
+                ]
+            ),
+            html.Div(
+                className="card-body",
+                children=[
+                    html.Div(
+                        className="row",
+                        children=[
+                            metric_and_value_div(
+                                metric="Cases Total",
+                                value=cases_total
+                            ),
+                            metric_and_value_div(
+                                metric="Active Cases",
+                                value=active_cases
+                            ),
+                            metric_and_value_div(
+                                metric="Deaths",
+                                value=deaths
+                            ),
+                        ]
+                    ),
+                    html.Div(
+                        className="row",
+                        children=[
+                            metric_and_value_div(
+                                metric="Recovered",
+                                value=recovered_total
+                            ),
+                            metric_and_value_div(
+                                metric="First Case",
+                                value=first_case
+                            ),
+                            metric_and_value_div(
+                                metric="Daily Peak",
+                                value=daily_peak
+                            ),
+                        ]
+                    ),
+                    html.P(
+                        className="text-muted",
+                        style={"margin-bottom": 0},
+                        children=[
+                            f"Latest data comes from: {last_data}"
+                        ]
+                    )
+                ]
+            ),
         ]
-        graphs_to_include = [
-            graph_class(df, country, graph_type, date_range).get_graph()
-            for graph_class in graphs_to_include_classes
-        ]
+    )
 
-        # Clean out graphs that returned None
-        graphs_to_include = [
-            graph for graph in graphs_to_include if graph is not None]
 
-        elements = [
-            # TODO(blake): implement a div with basic info
-            self.basic_info(),
-            *graphs_to_include,
-        ]
-        return elements
+def elements_maker(
+        self, country: str, graph_type: str, date_range: List[int]):
+    self.set_current_country(country)
+    df = self.current_country_data
+    graphs_to_include_classes = [
+        DailyCases,
+        TotalCasesGraph,
+        CasesDailyGraph,
+        DeathsDailyGraph,
+        ActiveCasesTotalGraph,
+    ]
+    graphs_to_include = [
+        graph_class(df, country, graph_type, date_range).get_graph()
+        for graph_class in graphs_to_include_classes
+    ]
+
+    # Clean out graphs that returned None
+    graphs_to_include = [
+        graph for graph in graphs_to_include if graph is not None]
+
+    elements = [
+        # TODO(blake): implement a div with basic info
+        self.basic_info(),
+        *graphs_to_include,
+    ]
+    return elements

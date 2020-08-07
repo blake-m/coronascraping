@@ -1,3 +1,4 @@
+import textwrap
 from typing import List
 
 import dash
@@ -6,7 +7,9 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 
 from components.main import worldmap, worldtable
-from components.tabs import tabs, switch_tab_content
+from components.main.country.graphs import DailyCases, TotalCasesGraph, \
+    CasesDailyGraph, DeathsDailyGraph, ActiveCasesTotalGraph
+from components.tabs import tabs
 
 
 def create_app(countries):
@@ -35,23 +38,46 @@ def create_app(countries):
         countries.set_current_country(country)
         return countries.select_date_range()
 
-    @app.callback(
-        Output("graphs", "children"),
-        [
-            Input("countries_dropdown", "value"),
-            Input("radio_graph_type", "value"),
-            Input("date-range-slider", "value"),
-        ],
-    )
-    def country_elements(country: str, graph_type: str, date_range: List[int]):
-        return countries.elements_maker(country, graph_type, date_range)
+    graph_classes = [
+        "DailyCases",
+        "TotalCasesGraph",
+        "CasesDailyGraph",
+        "DeathsDailyGraph",
+        "ActiveCasesTotalGraph",
+    ]
+
+    for graph_class in graph_classes:
+        exec(textwrap.dedent(
+            f"""
+            @app.callback(
+            Output(f"{graph_class}-div", "children"),
+                [
+                    Input("countries_dropdown", "value"),
+                    Input("radio_graph_type", "value"),
+                    Input("date-range-slider", "value"),
+                ]
+            )
+            def country_elements(country: str, graph_type: str,
+                                 date_range: List[int]):
+                return [
+                    {graph_class}(countries.current_country_data, country,
+                                           graph_type, date_range).get_graph()]
+                """
+            )
+        )
 
     @app.callback(
         Output("card-content", "children"),
         [Input("card-main", "active_tab")]
     )
     def tab_content(active_tab):
-        return switch_tab_content(active_tab, countries)
+        # TODO(blake): export it back to tabs module
+        if active_tab == "tab-1":
+            return worldmap.children
+        if active_tab == "tab-2":
+            return worldtable.children
+        if active_tab == "tab-3":
+            return countries.countries_div(graph_classes)
 
     # Loading spinners callbacks
     @app.callback(
@@ -73,10 +99,12 @@ def create_app(countries):
         [
             Input("card-main", "active_tab"),
             Input("countries_dropdown", "value"),
+            Input("radio_graph_type", "value"),
+            Input("date-range-slider", "value"),
         ]
     )
-    def tab_content(active_tab, country):
-        return countries.countries_div()
+    def tab_content(active_tab, country, graph_type, date_range):
+        return countries.countries_div(graph_classes)
 
     app.config.suppress_callback_exceptions = True
     app.layout = html.Div(children=[main])

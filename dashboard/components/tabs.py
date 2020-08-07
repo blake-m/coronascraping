@@ -2,6 +2,7 @@ import dash_bootstrap_components as dbc
 import dash_html_components as html
 
 from components.main import worldtable, worldmap
+from components.main.country import graphs
 from components.main.country.country import Countries
 
 
@@ -55,14 +56,20 @@ def tabs(countries: Countries):
         ],
         id="card-main",
         card=True,
-        active_tab="tab-1",
+        active_tab="tab-3",
     )
 
 
-def switch_tab_content(active_tab, countries: Countries):
-    if active_tab == "tab-1":
-        return worldmap.children
-    if active_tab == "tab-2":
-        return worldtable.children
-    if active_tab == "tab-3":
-        return countries.countries_div()
+# def switch_tab_content(active_tab, countries: Countries):
+#     if active_tab == "tab-1":
+#         return worldmap.children
+#     if active_tab == "tab-2":
+#         return worldtable.children
+#     if active_tab == "tab-3":
+#         return countries.countries_div([
+#         graphs.DailyCases,
+#         graphs.TotalCasesGraph,
+#         graphs.CasesDailyGraph,
+#         graphs.DeathsDailyGraph,
+#         graphs.ActiveCasesTotalGraph,
+#     ])
