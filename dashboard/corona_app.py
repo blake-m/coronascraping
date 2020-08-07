@@ -2,10 +2,10 @@ from typing import List
 
 import dash
 import dash_bootstrap_components as dbc
-import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 
+from components.main import worldmap, worldtable
 from components.tabs import tabs, switch_tab_content
 
 
@@ -17,14 +17,9 @@ def create_app(countries):
             dbc.CardHeader(tabs(countries)),
             dbc.CardBody(
                 className="align-middle",
-                children=dcc.Loading(
-                    className="align-middle",
-                    children=[
-                        html.Div(
-                            id="card-content",
-                            className="container-fluid",
-                        ),
-                    ]
+                children=html.Div(
+                    id="card-content",
+                    className="container-fluid",
                 )
             ),
         ]
@@ -41,7 +36,7 @@ def create_app(countries):
         return countries.select_date_range()
 
     @app.callback(
-        Output("graphs-div", "children"),
+        Output("graphs", "children"),
         [
             Input("countries_dropdown", "value"),
             Input("radio_graph_type", "value"),
@@ -57,6 +52,31 @@ def create_app(countries):
     )
     def tab_content(active_tab):
         return switch_tab_content(active_tab, countries)
+
+    # Loading spinners callbacks
+    @app.callback(
+        Output("worldtable-content", "children"),
+        [Input("card-main", "active_tab")]
+    )
+    def tab_content(active_tab):
+        return worldtable.get_fig()
+
+    @app.callback(
+        Output("worldmap-content", "children"),
+        [Input("card-main", "active_tab")]
+    )
+    def tab_content(active_tab):
+        return worldmap.get_fig()
+
+    @app.callback(
+        Output("countries-content", "children"),
+        [
+            Input("card-main", "active_tab"),
+            Input("countries_dropdown", "value"),
+        ]
+    )
+    def tab_content(active_tab, country):
+        return countries.countries_div()
 
     app.config.suppress_callback_exceptions = True
     app.layout = html.Div(children=[main])

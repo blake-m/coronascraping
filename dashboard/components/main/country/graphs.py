@@ -127,10 +127,11 @@ class AdvancedBaseGraph(BaseGraph):
         return x, y_axes
 
     def get_x_and_y_axis_selected_range_data(self, x, y):
-        x_ranged = x[self.date_range[0]: self.date_range[1]]
+        # +1 makes the range full and avoids skipping last value
+        x_ranged = x[self.date_range[0]: self.date_range[1]+1]
         y_ranged = {}
         for graph in self.graph:
-            y_ranged[graph] = y[graph][self.date_range[0]: self.date_range[1]]
+            y_ranged[graph] = y[graph][self.date_range[0]: self.date_range[1]+1]
         return x_ranged, y_ranged
 
     @staticmethod

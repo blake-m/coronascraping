@@ -92,34 +92,62 @@ class Countries(object):
         )
 
     def countries_div(self) -> html.Div:
-        return html.Div(
-            id="graphs-div",
-            children=[],
-            className="container",
-            style={"min-height": "500px"},
+        return dcc.Loading(
+            id="loading-table",
+            children=[
+                html.Div(
+                    id="countries-content",
+                    children=[
+                        html.Div(
+                            id="graphs"
+                        )
+                    ],
+                    className="container",
+                    style={"min-height": "500px"},
+                )
+            ],
+            type="cube",
         )
 
     def basic_info(self) -> html.Div:
         country = self.current_country_name
         data = self.current_country_data
-        cases_total = int(data['coronavirus_cases_linear'].values[-1])
-        active_cases = int(data['graph_active_cases_total'].values[-1])
+        not_available_message = "Data Not Available"
+
+        try:
+            cases_total = int(data['coronavirus_cases_linear'].values[-1])
+        except KeyError:
+            cases_total = not_available_message
+
+        try:
+            active_cases = int(data['graph_active_cases_total'].values[-1])
+        except KeyError:
+            active_cases = not_available_message
+
         try:
             deaths = int(data['coronavirus_deaths_linear'].values[-1])
         except KeyError:
-            deaths = np.nan
-        first_case = data.index[data['graph_cases_daily'] != 0][0]
-        daily_peak = int(data['graph_cases_daily'].values.max())
-        # TODO(blake): jak ktoregos nie ma, to data not avaialable tez zrob
-        recovered_total = cases_total - active_cases - deaths
+            deaths = not_available_message
+
+        try:
+            first_case = data.index[data['graph_cases_daily'] != 0][0]
+        except KeyError:
+            first_case = not_available_message
+
+        try:
+            daily_peak = int(data['graph_cases_daily'].values.max())
+        except KeyError:
+            daily_peak = not_available_message
+
+        try:
+            recovered_total = cases_total - active_cases - deaths
+        except TypeError:
+            recovered_total = not_available_message
+
         last_data = data.index[-1]
 
         def metric_and_value_div(
                 metric: str, value: Union[str, int]) -> html.Div:
-            if value is np.nan:
-                value_checked = "Data Not Available"
-            else:
-                value_checked = value
             return html.Div(
                 className="col",
                 children=[
@@ -129,7 +157,7 @@ class Countries(object):
                     ),
                     html.P(
                         children=[
-                            f"{value_checked}"
+                            f"{value}"
                         ]
                     ),
                 ]
