@@ -18,7 +18,6 @@ def create_app(countries):
             dbc.CardBody(
                 className="align-middle",
                 children=dcc.Loading(
-                    id='card-body-loading',
                     className="align-middle",
                     children=[
                         html.Div(
@@ -30,6 +29,16 @@ def create_app(countries):
             ),
         ]
     )
+
+    @app.callback(
+        Output("date-range-div", "children"),
+        [
+            Input("countries_dropdown", "value"),
+        ],
+    )
+    def country_elements(country: str):
+        countries.set_current_country(country)
+        return countries.select_date_range()
 
     @app.callback(
         Output("graphs-div", "children"),

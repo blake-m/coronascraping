@@ -42,6 +42,7 @@ def tabs(countries: Countries):
                                 children=[
                                     html.Div(
                                         className="col-12 mt-3",
+                                        id="date-range-div",
                                         children=countries.select_date_range()
                                     )
                                 ]

@@ -8,6 +8,8 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 
+import numpy as np
+
 CONFIG_PATH = './config.ini'
 
 
@@ -73,10 +75,12 @@ class Countries(object):
         max_value = max(value_range)
         print(min_value, max_value)
         print(min_value, type(max_value))
+
+        mark_values = np.linspace(start=0, stop=max_value, num=10, dtype=int)
         marks = {
             value: mark for value, mark
             in zip(value_range, labels)
-            if value % 15 == 0
+            if value in mark_values
         }
         return dcc.RangeSlider(
             id='date-range-slider',
@@ -100,14 +104,22 @@ class Countries(object):
         data = self.current_country_data
         cases_total = int(data['coronavirus_cases_linear'].values[-1])
         active_cases = int(data['graph_active_cases_total'].values[-1])
-        deaths = int(data['coronavirus_deaths_linear'].values[-1])
+        try:
+            deaths = int(data['coronavirus_deaths_linear'].values[-1])
+        except KeyError:
+            deaths = np.nan
         first_case = data.index[data['graph_cases_daily'] != 0][0]
         daily_peak = int(data['graph_cases_daily'].values.max())
+        # TODO(blake): jak ktoregos nie ma, to data not avaialable tez zrob
         recovered_total = cases_total - active_cases - deaths
         last_data = data.index[-1]
 
         def metric_and_value_div(
                 metric: str, value: Union[str, int]) -> html.Div:
+            if value is np.nan:
+                value_checked = "Data Not Available"
+            else:
+                value_checked = value
             return html.Div(
                 className="col",
                 children=[
@@ -117,7 +129,7 @@ class Countries(object):
                     ),
                     html.P(
                         children=[
-                            f"{value}"
+                            f"{value_checked}"
                         ]
                     ),
                 ]
@@ -187,12 +199,6 @@ class Countries(object):
                         )
                     ]
                 ),
-                # html.Div(
-                #     className="card-footer text-muted",
-                #     children=[
-                #         f"Latest data comes from: Monday"
-                #     ]
-                # )
             ]
         )
 

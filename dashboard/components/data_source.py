@@ -147,9 +147,7 @@ def main():
     data_source = PostgresDataSource(CONFIG_PATH)
     # data_source = JSONDataSource(CONFIG_PATH)
     country = data_source.get_pandas_dataframe_for_one_country("poland")
-    print(country)
     countries = data_source.get_countries()
-    print(countries)
 
 
 if __name__ == "__main__":
