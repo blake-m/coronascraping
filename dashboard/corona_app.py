@@ -29,9 +29,7 @@ def create_app(countries):
 
     @app.callback(
         Output("date-range-div", "children"),
-        [
-            Input("countries_dropdown", "value"),
-        ],
+        [Input("countries_dropdown", "value"),],
     )
     def country_elements(country: str):
         countries.set_current_country(country)
@@ -157,7 +155,17 @@ def create_app(countries):
         ]
     )
     def tab_content(active_tab, country, graph_type, date_range):
+        print("FIRED", "tab_content")
         return countries.countries_div(graph_classes)
+
+    @app.callback(
+        Output("graphs", "className"),
+        [Input("graph_width", "value"),],
+    )
+    def graph_width(value: []):
+        if value:
+            return ""
+        return "container"
 
     app.config.suppress_callback_exceptions = True
     app.layout = html.Div(children=[main])

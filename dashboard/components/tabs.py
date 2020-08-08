@@ -29,12 +29,16 @@ def tabs(countries: Countries):
                                 className="row align-items-center",
                                 children=[
                                     html.Div(
-                                        className="col-8",
+                                        className="col-7",
                                         children=[
                                             countries.select_country_dropdown()]
                                     ),
                                     html.Div(
-                                        className="col-4",
+                                        className="col-2",
+                                        children=countries.select_graph_width()
+                                    ),
+                                    html.Div(
+                                        className="col-3",
                                         children=[countries.select_graph_type()]
                                     )]
                             ),

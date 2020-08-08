@@ -137,6 +137,7 @@ class PostgresDataSource(DataSource):
             FROM information_schema.tables
             WHERE table_schema='public'
         """
+        # country_tuple[0] because query returns this format: ('el_salvador',)
         return sorted([
             country_tuple[0] for country_tuple
             in self.run_query(query_get_countries_names)

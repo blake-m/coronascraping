@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Union
 
 from components import data_source
@@ -9,6 +10,7 @@ import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 
 import numpy as np
+import pandas as pd
 
 CONFIG_PATH = './config.ini'
 
@@ -66,6 +68,16 @@ class Countries(object):
             inline=True,
         )
 
+    def select_graph_width(self):
+        return dbc.Checklist(
+            options=[
+                {"label": "Wide Graphs", "value": True},
+            ],
+            value=[],
+            id="graph_width",
+            switch=True,
+        )
+
     def select_date_range(self):
         labels = self.current_country_data.index
         range_size = len(self.current_country_data.index)
@@ -93,9 +105,16 @@ class Countries(object):
             id="countries-content",
             children=[
                 html.Div(
-                    id="graphs",
+                    id="basic-info-div",
+                    className="container",
                     children=[
                         self.basic_info(),
+                    ]
+                ),
+                html.Div(
+                    id="graphs",
+                    className="container",
+                    children=[
                         *[dcc.Loading(
                             id="loading-table",
                             children=[
@@ -110,7 +129,6 @@ class Countries(object):
                     ]
                 )
             ],
-            className="container",
             style={"min-height": "500px"},
         )
 
