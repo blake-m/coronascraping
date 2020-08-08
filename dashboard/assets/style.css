@@ -18,3 +18,9 @@
 .rc.slider-handle-active:active {
     border-color: #007bff;
 }
+
+.dash-spreadsheet-container table {
+    --accent: #ffffff !important;
+    --selected-background: #007bff !important;
+    --selected-color: #ffffff !important;
+}

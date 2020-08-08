@@ -1,22 +1,24 @@
-from time import sleep
 from typing import List
 
 import dash
 import dash_bootstrap_components as dbc
 import dash_html_components as html
-from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output
 
-from components.main import worldmap, worldtable
+from components.main import worldtable
+from components.main.map import worldmap
 from components.main.country import graphs
+from components.main.country.country import SingleCountry, Countries
 from components.tabs import tabs
 
 
-def create_app(countries):
+def create_app(
+        single_country: SingleCountry, countries: Countries) -> dash.Dash:
     app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
     main = dbc.Card(
         [
-            dbc.CardHeader(tabs(countries)),
+            dbc.CardHeader(tabs(single_country)),
             dbc.CardBody(
                 className="align-middle",
                 children=html.Div(
@@ -32,8 +34,8 @@ def create_app(countries):
         [Input("countries_dropdown", "value"),],
     )
     def country_elements(country: str):
-        countries.set_current_country(country)
-        return countries.select_date_range()
+        single_country.set_current_country(country)
+        return single_country.select_date_range()
 
     # Graphs section ##############################################
     # Callbacks need to be created upfront, hence no dynamic creation
@@ -56,7 +58,7 @@ def create_app(countries):
     def country_elements(country: str, graph_type: str,
                          date_range: List[int]):
         return [
-            graphs.DailyCases(countries.current_country_data, country,
+            graphs.DailyCases(single_country.current_country_data, country,
                               graph_type, date_range).get_graph()]
 
     @app.callback(
@@ -70,7 +72,7 @@ def create_app(countries):
     def country_elements(country: str, graph_type: str,
                          date_range: List[int]):
         return [
-            graphs.TotalCasesGraph(countries.current_country_data, country,
+            graphs.TotalCasesGraph(single_country.current_country_data, country,
                                    graph_type, date_range).get_graph()]
 
     @app.callback(
@@ -84,7 +86,7 @@ def create_app(countries):
     def country_elements(country: str, graph_type: str,
                          date_range: List[int]):
         return [
-            graphs.CasesDailyGraph(countries.current_country_data, country,
+            graphs.CasesDailyGraph(single_country.current_country_data, country,
                                    graph_type, date_range).get_graph()]
 
     @app.callback(
@@ -98,7 +100,7 @@ def create_app(countries):
     def country_elements(country: str, graph_type: str,
                          date_range: List[int]):
         return [
-            graphs.DeathsDailyGraph(countries.current_country_data, country,
+            graphs.DeathsDailyGraph(single_country.current_country_data, country,
                                     graph_type, date_range).get_graph()]
 
     @app.callback(
@@ -112,7 +114,7 @@ def create_app(countries):
     def country_elements(country: str, graph_type: str,
                          date_range: List[int]):
         return [
-            graphs.ActiveCasesTotalGraph(countries.current_country_data,
+            graphs.ActiveCasesTotalGraph(single_country.current_country_data,
                                          country,
                                          graph_type, date_range).get_graph()]
 
@@ -128,7 +130,7 @@ def create_app(countries):
         if active_tab == "tab-2":
             return worldtable.children
         if active_tab == "tab-3":
-            return countries.countries_div(graph_classes)
+            return single_country.countries_div(graph_classes)
 
     # Loading spinners callbacks
     @app.callback(
@@ -136,14 +138,14 @@ def create_app(countries):
         [Input("card-main", "active_tab")]
     )
     def tab_content(active_tab):
-        return worldtable.get_fig()
+        return worldtable.get_fig(countries)
 
     @app.callback(
         Output("worldmap-content", "children"),
         [Input("card-main", "active_tab")]
     )
     def tab_content(active_tab):
-        return worldmap.get_fig()
+        return worldmap.get_fig(countries)
 
     @app.callback(
         Output("countries-content", "children"),
@@ -156,7 +158,7 @@ def create_app(countries):
     )
     def tab_content(active_tab, country, graph_type, date_range):
         print("FIRED", "tab_content")
-        return countries.countries_div(graph_classes)
+        return single_country.countries_div(graph_classes)
 
     @app.callback(
         Output("graphs", "className"),
@@ -166,6 +168,13 @@ def create_app(countries):
         if value:
             return ""
         return "container"
+
+
+    # Worldtable callbacks
+
+
+    ###########################################################################
+
 
     app.config.suppress_callback_exceptions = True
     app.layout = html.Div(children=[main])

@@ -2,6 +2,7 @@ import abc
 import configparser
 import json
 import logging
+from datetime import datetime
 from typing import List, Tuple
 
 import pandas as pd
@@ -14,9 +15,13 @@ CONFIG_PATH = '../config.ini'
 
 class DataSource(abc.ABC):
     def __init__(self, config_path: str, section: str):
+        t1 = datetime.now()
         self.config: configparser.ConfigParser = self.load_config(config_path)
         self.config = self.config[section]
         self.connection = self.connect_to_data()
+        t2 = datetime.now()
+        print("DATA SOURCE STARTUP TIME: ", t2-t1)
+
 
     @staticmethod
     def load_config(config_path: str) -> configparser.ConfigParser:
@@ -29,7 +34,7 @@ class DataSource(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_pandas_dataframe_for_one_country(self, country: str):
+    def get_dataframe_for_one_country(self, country: str):
         pass
 
     @abc.abstractmethod
@@ -55,13 +60,13 @@ class JSONDataSource(DataSource):
                 countries_dict[key] = value
         return countries_dict
 
-    def get_pandas_dataframe_for_one_country(self, country: str):
+    def get_dataframe_for_one_country(self, country: str):
         countries_dict = self.convert_json_list_to_dict()
         country_dict = countries_dict[country]
         df = pd.DataFrame(country_dict)
         return df
 
-    def get_pandas_dataframe_for_all_countries(self):
+    def get_dataframe_for_all_countries(self):
         countries_dict = self.convert_json_list_to_dict()
         dfs = []
         for country, graphs in countries_dict.items():
@@ -114,7 +119,8 @@ class PostgresDataSource(DataSource):
         logging.info("Connected to database.")
         return connection
 
-    def get_pandas_dataframe_for_one_country(self, country: str) -> pd.DataFrame:
+    def get_dataframe_for_one_country(
+            self, country: str, date_as_index: bool = True) -> pd.DataFrame:
         query_values = f"SELECT * FROM {country}"
         data = self.run_query(query_values)
 
@@ -128,8 +134,21 @@ class PostgresDataSource(DataSource):
         column_names = [column_tuple[0] for column_tuple in column_names]
 
         df = pd.DataFrame(data=data, columns=column_names)
-        df = df.set_index("date")
+        if date_as_index:
+            df = df.set_index("date")
         return df
+
+    def get_dataframe_for_all_countries(self):
+        countries_list = []
+        for country in self.get_countries():
+            data = self.get_dataframe_for_one_country(
+                country, date_as_index=False
+            )
+            data["country"] = country
+            countries_list.append(data)
+        final_df = pd.concat(countries_list)
+        return final_df
+
 
     def get_countries(self):
         query_get_countries_names = """
@@ -147,7 +166,7 @@ class PostgresDataSource(DataSource):
 def main():
     data_source = PostgresDataSource(CONFIG_PATH)
     # data_source = JSONDataSource(CONFIG_PATH)
-    country = data_source.get_pandas_dataframe_for_one_country("poland")
+    country = data_source.get_dataframe_for_one_country("poland")
     countries = data_source.get_countries()
 
 

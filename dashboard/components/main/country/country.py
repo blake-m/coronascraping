@@ -1,9 +1,7 @@
 from datetime import datetime
-from typing import List, Union
+from typing import List, Union, Dict
 
 from components import data_source
-from components.main.country.graphs import TotalCasesGraph, CasesDailyGraph, \
-    DeathsDailyGraph, ActiveCasesTotalGraph, DailyCases
 
 import dash_html_components as html
 import dash_bootstrap_components as dbc
@@ -15,21 +13,10 @@ import pandas as pd
 CONFIG_PATH = './config.ini'
 
 
-class Countries(object):
+class CountryEngine(object):
     def __init__(self):
         self.data_source = data_source.PostgresDataSource(CONFIG_PATH)
         self.list_all = self.data_source.get_countries()
-        self.current_country_data = \
-            self.data_source.get_pandas_dataframe_for_one_country(
-                self.list_all[0]
-            )
-        self.current_country_name = self.list_all[0]
-
-    def set_current_country(self, country: str) -> None:
-        print("FIRED (set_current_country)")
-        self.current_country_data = \
-            self.data_source.get_pandas_dataframe_for_one_country(country)
-        self.current_country_name = country
 
     @staticmethod
     def correct_country_name(country: str) -> str:
@@ -42,6 +29,26 @@ class Countries(object):
                 for part in name_parts
             ]
             return " ".join(name_parts)
+
+
+class SingleCountry(CountryEngine):
+    def __init__(self):
+        t1 = datetime.now()
+        super().__init__()
+        self.current_country_data = \
+            self.data_source.get_dataframe_for_one_country(
+                self.list_all[0]
+            )
+        self.current_country_name = self.list_all[0]
+
+        t2 = datetime.now()
+        print("COUNTRIES STARTUP TIME: ", t2 - t1)
+
+    def set_current_country(self, country: str) -> None:
+        print("FIRED (set_current_country)")
+        self.current_country_data = \
+            self.data_source.get_dataframe_for_one_country(country)
+        self.current_country_name = country
 
     def select_country_dropdown(self):
         dropdown_items = [
@@ -252,3 +259,79 @@ class Countries(object):
                 ),
             ]
         )
+
+
+class Countries(CountryEngine):
+    def __init__(self):
+        t1 = datetime.now()
+
+        super().__init__()
+        self.detailed_data = self.data_source.get_dataframe_for_all_countries()
+        self.summary_data = self.get_all_countries_summary()
+
+        t2 = datetime.now()
+        print("ALL COUNTRIES STARTUP TIME: ", t2 - t1)
+
+    def get_country_basic_info(self, country_data: pd.DataFrame) -> Dict:
+        not_available_message = "N/A"
+        country_summary = {}
+        try:
+            country_summary["Cases Total"] = country_data['coronavirus_cases_linear'].values[-1]
+        except KeyError:
+            country_summary["Cases Total"] = not_available_message
+
+        try:
+            country_summary["New Cases"] = country_data['graph_cases_daily'].values[-1]
+            country_summary["Daily Peak"] = country_data['graph_cases_daily'].values.max()
+        except KeyError:
+            country_summary["New Cases"] = not_available_message
+            country_summary["Daily Peak"] = not_available_message
+
+        try:
+            country_summary["Active Cases"] = country_data['graph_active_cases_total'].values[-1]
+        except KeyError:
+            country_summary["Active Cases"] = not_available_message
+
+        try:
+            country_summary["Deaths"] = country_data['coronavirus_deaths_linear'].values[-1]
+        except KeyError:
+            country_summary["Deaths"] = not_available_message
+
+        try:
+            country_summary["First Case"] = country_data.index[country_data['graph_cases_daily'] != 0][0]
+        except KeyError:
+            country_summary["First Case"] = not_available_message
+
+        try:
+            country_summary["Recovered Total"] = country_summary["Cases Total"] - country_summary["Active Cases"] - country_summary["Deaths"]
+        except TypeError:
+            country_summary["Recovered Total"] = not_available_message
+
+        return country_summary
+
+    def get_all_countries_summary(self) -> pd.DataFrame:
+        t1 = datetime.now()
+
+        summary_data_list = []
+        for country in self.list_all:
+            country_data = self.detailed_data[self.detailed_data["country"] == country]
+            country_data_summarized = {
+                "Country": country,
+                **self.get_country_basic_info(country_data)
+            }
+            summary_data_list.append(country_data_summarized)
+
+        df_grouped = pd.DataFrame(summary_data_list)
+        df_grouped["Country"] = df_grouped["Country"].apply(
+            self.correct_country_name)
+        t2 = datetime.now()
+        print("get_all_countries_summary TIME: ", t2 - t1)
+        return df_grouped
+
+
+def main():
+    countries = Countries()
+
+
+if __name__ == "__main__":
+    main()

@@ -1,12 +1,10 @@
 import dash_bootstrap_components as dbc
 import dash_html_components as html
 
-from components.main import worldtable, worldmap
-from components.main.country import graphs
-from components.main.country.country import Countries
+from components.main.country.country import SingleCountry
 
 
-def tabs(countries: Countries):
+def tabs(countries: SingleCountry):
     return dbc.Tabs(
         [
             dbc.Tab(
@@ -60,7 +58,7 @@ def tabs(countries: Countries):
         ],
         id="card-main",
         card=True,
-        active_tab="tab-3",
+        active_tab="tab-1",
     )
 
 

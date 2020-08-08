@@ -1,22 +1,52 @@
 import dash_core_components as dcc
 import dash_html_components as html
+import dash_table
 
-import plotly.express as px
-
-from components import template
+from components.main.country.country import Countries
 
 
-def get_fig():
-    template.bootstrap()
+def get_fig(countries: Countries) -> html.Div:
+    df = countries.summary_data
+    bootstrap_colors = {
+        "primary": "#007bff",
+        "table-primary": "#b8daff",
+        "text-muted": "#6c757d",
+    }
 
-    df = px.data.iris()  # iris is a pandas DataFrame
-    fig = px.scatter(df, x="sepal_width", y="sepal_length")
+    return html.Div(
+        className="container",
+        children=[
+            dash_table.DataTable(
+                id='table',
+                columns=[{"name": column, "id": column} for column in
+                         df.columns],
+                data=df.to_dict('records'),
+                filter_action="native",
+                sort_action="native",
+                sort_mode="multi",
 
-    map = dcc.Graph(
-        id='example-graph-1',
-        figure=fig
+                style_header={
+                    'backgroundColor': bootstrap_colors["primary"],
+                    'color': 'white',
+                    'fontWeight': 'bold'
+                },
+                style_cell={
+                    'border': '0',
+                    'backgroundColor': 'white',
+                    'color': bootstrap_colors["text-muted"],
+                    'font-family': 'sans-serif',
+                    'padding': '1px 25px'
+                },
+                style_data_conditional=[
+                    {
+                        'if': {'row_index': 'odd'},
+                        'backgroundColor': bootstrap_colors["table-primary"]
+                    }
+                ],
+                style_as_list_view=True,
+            )
+        ]
     )
-    return map
 
 
 children = [
@@ -30,4 +60,5 @@ children = [
         ],
         type="circle",
     )
+
 ]
