@@ -9,6 +9,7 @@ from components.main import worldtable
 from components.main.map import worldmap
 from components.main.country import graphs
 from components.main.country.country import SingleCountry, Countries
+from components.main.map.worldmap import create_map
 from components.tabs import tabs
 
 
@@ -16,22 +17,9 @@ def create_app(
         single_country: SingleCountry, countries: Countries) -> dash.Dash:
     app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
-    main = dbc.Card(
-        [
-            dbc.CardHeader(tabs(single_country)),
-            dbc.CardBody(
-                className="align-middle",
-                children=html.Div(
-                    id="card-content",
-                    className="container-fluid",
-                )
-            ),
-        ]
-    )
-
     @app.callback(
         Output("date-range-div", "children"),
-        [Input("countries_dropdown", "value"),],
+        [Input("countries_dropdown", "value"), ],
     )
     def country_elements(country: str):
         single_country.set_current_country(country)
@@ -100,7 +88,8 @@ def create_app(
     def country_elements(country: str, graph_type: str,
                          date_range: List[int]):
         return [
-            graphs.DeathsDailyGraph(single_country.current_country_data, country,
+            graphs.DeathsDailyGraph(single_country.current_country_data,
+                                    country,
                                     graph_type, date_range).get_graph()]
 
     @app.callback(
@@ -162,20 +151,53 @@ def create_app(
 
     @app.callback(
         Output("graphs", "className"),
-        [Input("graph_width", "value"),],
+        [Input("graph_width", "value"), ],
     )
     def graph_width(value: []):
         if value:
             return ""
         return "container"
 
+    # Worldmap callbacks
 
-    # Worldtable callbacks
-
+    @app.callback(
+        Output("worldmap-graph", "figure"),
+        [
+            Input("radio-set-projection", "value"),
+            Input("select-set-data-shown", "value"),
+            Input("radio-set-size", "value"),
+        ],
+    )
+    def set_worldmap(projection: str, data_shown: str, size: int):
+        return create_map(countries, projection, data_shown, size)
 
     ###########################################################################
 
+    main = html.Div(
+        className="",
+        children=dbc.Card(
+            [
+                dbc.CardHeader(
+                    tabs(single_country),
+                    className="card-header text-white bg-primary",
+                ),
+                dbc.CardBody(
+                    className="align-middle",
+                    children=html.Div(
+                        id="card-content",
+                        className="container-fluid",
+                    )
+                ),
+            ],
+        )
+    )
 
     app.config.suppress_callback_exceptions = True
-    app.layout = html.Div(children=[main])
+    app.layout = html.Div(
+        className="bg-light p-3",
+        style={
+            "min-height": "100vh",
+        },
+        children=[main]
+    )
     return app

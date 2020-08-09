@@ -24,3 +24,13 @@
     --selected-background: #007bff !important;
     --selected-color: #ffffff !important;
 }
+
+.nav-link {
+    color: black;
+    border-radius: 5px;
+    margin: 0 5px 25px;
+}
+
+.nav-link.active {
+    color: green;
+}

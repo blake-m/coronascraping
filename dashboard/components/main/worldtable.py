@@ -14,7 +14,6 @@ def get_fig(countries: Countries) -> html.Div:
     }
 
     return html.Div(
-        className="container",
         children=[
             dash_table.DataTable(
                 id='table',
@@ -44,6 +43,10 @@ def get_fig(countries: Countries) -> html.Div:
                     }
                 ],
                 style_as_list_view=True,
+                style_table={
+                    'overflowX': 'auto',
+                    'overflowY': 'auto',
+                }
             )
         ]
     )
@@ -58,7 +61,6 @@ children = [
                 style={"min-height": "500px"},
             )
         ],
-        type="circle",
     )
 
 ]
