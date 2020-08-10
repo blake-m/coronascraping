@@ -1,3 +1,5 @@
+import os
+
 import dash_core_components as dcc
 import dash_bootstrap_components as dbc
 import dash_html_components as html
@@ -7,7 +9,8 @@ import plotly.express as px
 
 from components.main.country.country import Countries
 
-ISO_CODES_PATH = "components\main\map\countries_codes_and_coordinates.csv"
+ISO_CODES_PATH = os.path.join(*[
+    "components", "main", "map", "countries_codes_and_coordinates.csv"])
 
 
 def set_projection():
