@@ -5,20 +5,20 @@ import dash_bootstrap_components as dbc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 
-from components.main import worldtable
+from components.main import worldtable, world_detail
 from components.main.map import worldmap
 from components.main.country import graphs
-from components.main.country.country import SingleCountry, Countries
+from components.main.country.country import SingleCountry, Countries, World
 from components.main.map.worldmap import create_map
 from components.tabs import tabs
 
 
 def create_app(
-        single_country: SingleCountry, countries: Countries) -> dash.Dash:
+        single_country: SingleCountry, countries: Countries, world: World) -> dash.Dash:
     app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
     @app.callback(
-        Output("date-range-div", "children"),
+        Output("date-range-div-countries", "children"),
         [Input("countries_dropdown", "value"), ],
     )
     def country_elements(country: str):
@@ -116,9 +116,11 @@ def create_app(
     def tab_content(active_tab):
         if active_tab == "tab-1":
             return worldmap.children
-        if active_tab == "tab-2":
+        elif active_tab == "tab-2":
+            return world_detail.children
+        elif active_tab == "tab-3":
             return worldtable.children
-        if active_tab == "tab-3":
+        elif active_tab == "tab-4":
             return single_country.countries_div(graph_classes)
 
     # Loading spinners callbacks
@@ -172,6 +174,21 @@ def create_app(
         return create_map(countries, projection, data_shown, size)
 
     ###########################################################################
+
+    @app.callback(
+        Output("world-detail-content", "children"),
+        [
+            Input("card-main", "active_tab"),
+            Input("countries_dropdown", "value"),
+            Input("radio_graph_type", "value"),
+            Input("date-range-slider", "value"),
+        ]
+    )
+    def tab_content(active_tab, country, graph_type, date_range):
+        print("FIRED", "tab_content")
+        return world.world_div(graph_classes)
+
+
 
     main = html.Div(
         className="",

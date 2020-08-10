@@ -59,12 +59,71 @@ def tabs(countries: SingleCountry):
                 )
             ),
             dbc.Tab(
-                label="World Table",
+                label="World Details",
                 tab_id="tab-2",
+                children=[
+                    html.Div(
+                        className="card p-3 text-body",
+                        children=[
+                            html.Div(
+                                className="row align-text-top",
+                                children=[
+                                    html.Div(
+                                        className="col-4",
+                                        children=[
+                                            dbc.Label(
+                                                "Placeholder",
+                                                className="h6"
+                                            )
+                                        ]
+                                    ),
+                                    html.Div(
+                                        className="col-4",
+                                        children=[
+                                            dbc.Label(
+                                                "Placeholder",
+                                                className="h6"
+                                            )
+                                        ]
+                                    ),
+                                    html.Div(
+                                        className="col-4",
+                                        children=[
+                                            dbc.Label(
+                                                "Placeholder",
+                                                className="h6"
+                                            )
+                                        ]
+                                    ),
+                                ]
+                            ),
+                            html.Div(
+                                className="row align-text-top",
+                                children=[
+                                    html.Div(
+                                        className="col-12 mt-3",
+                                        id="date-range-div-world",
+                                        children=[
+
+                                            dbc.Label(
+                                                "Placeholder",
+                                                className="h6"
+                                            )
+                                        ]
+                                    )
+                                ]
+                            )
+                        ]
+                    )
+                ]
+            ),
+            dbc.Tab(
+                label="World Table",
+                tab_id="tab-3",
             ),
             dbc.Tab(
                 label="Countries",
-                tab_id="tab-3",
+                tab_id="tab-4",
                 children=html.Div(
                     className="container",
                     children=[
@@ -82,7 +141,7 @@ def tabs(countries: SingleCountry):
                                                     className="h6"
                                                 ),
                                                 countries.select_country_dropdown()
-                                    ]
+                                            ]
                                         ),
                                         html.Div(
                                             className="col-4",
@@ -111,7 +170,7 @@ def tabs(countries: SingleCountry):
                                     children=[
                                         html.Div(
                                             className="col-12 mt-3",
-                                            id="date-range-div",
+                                            id="date-range-div-countries",
                                             children=[
                                                 dbc.Label(
                                                     "Date Range",

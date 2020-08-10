@@ -74,7 +74,6 @@ def create_map(countries: Countries, projection,
         lambda string: string.replace(' ', ''))
     df_joined = pd.merge(df, iso_codes_df, on="Country", how="left")
 
-    print(df_joined.head())
     bootstrap_colors = {
         "primary": "#007bff",
         "table-primary": "#b8daff",
