@@ -7,7 +7,7 @@ import pandas as pd
 
 import plotly.express as px
 
-from components.main.country.country import Country
+from components.main.country import Country
 
 ISO_CODES_PATH = os.path.join(*[
     "components", "main", "map", "countries_codes_and_coordinates.csv"])
