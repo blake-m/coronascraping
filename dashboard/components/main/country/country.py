@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Union, Dict
 
-from components import data_source
+from components import data_source, auxiliary
 
 import dash_html_components as html
 import dash_bootstrap_components as dbc
@@ -10,13 +10,42 @@ import dash_core_components as dcc
 import numpy as np
 import pandas as pd
 
+from components import auxiliary
+
 CONFIG_PATH = './config.ini'
 
 
-class CountryEngine(object):
+class Country(object):
     def __init__(self):
+        t1 = datetime.now()
         self.data_source = data_source.PostgresDataSource(CONFIG_PATH)
         self.list_all = self.data_source.get_countries()
+        self.detailed_data = self.data_source.get_dataframe_for_all_countries()
+        t2 = datetime.now()
+        print("COMMON DATA STARTUP TIME:", t2 - t1)
+
+        t1 = datetime.now()
+        self.current_country_data = \
+            self.data_source.get_dataframe_for_one_country(
+                self.list_all[0]
+            )
+        print("current_country_data\n", self.current_country_data)
+        self.current_country_name = self.list_all[0]
+        t2 = datetime.now()
+        print("COUNTRIES STARTUP TIME: ", t2 - t1)
+
+        t1 = datetime.now()
+        self.summary_data = self.get_all_countries_summary()
+        t2 = datetime.now()
+        print("ALL COUNTRIES STARTUP TIME: ", t2 - t1)
+
+        t1 = datetime.now()
+        self.detailed_data = self.data_source.get_dataframe_for_all_countries()
+        self.world_data = self.get_world_data()
+        print("world_data\n", self.world_data)
+        t2 = datetime.now()
+
+        print("ALL COUNTRIES STARTUP TIME: ", t2 - t1)
 
     @staticmethod
     def correct_country_name(country: str) -> str:
@@ -29,20 +58,6 @@ class CountryEngine(object):
                 for part in name_parts
             ]
             return " ".join(name_parts)
-
-
-class SingleCountry(CountryEngine):
-    def __init__(self):
-        t1 = datetime.now()
-        super().__init__()
-        self.current_country_data = \
-            self.data_source.get_dataframe_for_one_country(
-                self.list_all[0]
-            )
-        self.current_country_name = self.list_all[0]
-
-        t2 = datetime.now()
-        print("COUNTRIES STARTUP TIME: ", t2 - t1)
 
     def set_current_country(self, country: str) -> None:
         print("FIRED (set_current_country)")
@@ -63,7 +78,7 @@ class SingleCountry(CountryEngine):
         )
         return select_country
 
-    def select_graph_type(self):
+    def select_graph_type(self, id_: str) -> dbc.RadioItems:
         return dbc.RadioItems(
             options=[
                 {"label": "Dedicated", "value": "Dedicated"},
@@ -71,41 +86,47 @@ class SingleCountry(CountryEngine):
                 {"label": "Line", "value": "Line"},
             ],
             value="Dedicated",
-            id="radio_graph_type",
+            id=id_,
             inline=True,
         )
 
-    def select_graph_width(self):
+    def select_graph_width(self, graph_type: str):
         return dbc.Checklist(
             options=[
                 {"label": "Wide Graphs", "value": True},
             ],
             value=[],
-            id="graph_width",
+            id=f"graph_width-{graph_type}",
             switch=True,
         )
 
-    def select_date_range(self):
-        labels = self.current_country_data.index
-        range_size = len(self.current_country_data.index)
+    def select_date_range(self, scope: str = "country") -> dcc.RangeSlider:
+        if scope == "world":
+            data = self.world_data
+        else:
+            data = self.current_country_data
+        labels = data.index
+        range_size = len(data.index)
         value_range = list(range(range_size))
         min_value = min(value_range)
         max_value = max(value_range)
 
         mark_values = np.linspace(start=0, stop=max_value, num=10, dtype=int)
+
         marks = {
-            value: mark for value, mark
+            value: auxiliary.date_to_month_day_format(mark) for value, mark
             in zip(value_range, labels)
             if value in mark_values
         }
         return dcc.RangeSlider(
-            id='date-range-slider',
+            id=f'date-range-slider-{scope}',
             min=min_value,
             max=max_value,
             marks=marks,
             step=1,
             value=[min_value, max_value]
         )
+
 
     def countries_div(self, graph_classes: List[str]) -> html.Div:
         return html.Div(
@@ -119,7 +140,7 @@ class SingleCountry(CountryEngine):
                     ]
                 ),
                 html.Div(
-                    id="graphs",
+                    id="graphs-country",
                     className="container",
                     children=[
                         *[dcc.Loading(
@@ -160,7 +181,8 @@ class SingleCountry(CountryEngine):
             deaths = not_available_message
 
         try:
-            first_case = data.index[data['graph_cases_daily'] != 0][0]
+            first_case = auxiliary.date_to_day_month_year_format(
+                data.index[data['graph_cases_daily'] != 0][0])
         except KeyError:
             first_case = not_available_message
 
@@ -174,7 +196,7 @@ class SingleCountry(CountryEngine):
         except TypeError:
             recovered_total = not_available_message
 
-        last_data = data.index[-1]
+        last_data = auxiliary.date_to_day_month_year_format(data.index[-1])
 
         def metric_and_value_div(
                 metric: str, value: Union[str, int]) -> html.Div:
@@ -260,30 +282,18 @@ class SingleCountry(CountryEngine):
             ]
         )
 
-
-class Countries(CountryEngine):
-    def __init__(self):
-        t1 = datetime.now()
-
-        super().__init__()
-        self.detailed_data = self.data_source.get_dataframe_for_all_countries()
-        self.summary_data = self.get_all_countries_summary()
-
-        t2 = datetime.now()
-        print("ALL COUNTRIES STARTUP TIME: ", t2 - t1)
-
     def get_country_basic_info(self, country_data: pd.DataFrame) -> Dict:
         not_available_message = "N/A"
         country_summary = {}
         try:
             country_summary["Cases Total"] = \
-            country_data['coronavirus_cases_linear'].values[-1]
+                country_data['coronavirus_cases_linear'].values[-1]
         except KeyError:
             country_summary["Cases Total"] = not_available_message
 
         try:
             country_summary["New Cases"] = \
-            country_data['graph_cases_daily'].values[-1]
+                country_data['graph_cases_daily'].values[-1]
             country_summary["Daily Peak"] = country_data[
                 'graph_cases_daily'].values.max()
         except KeyError:
@@ -292,19 +302,20 @@ class Countries(CountryEngine):
 
         try:
             country_summary["Active Cases"] = \
-            country_data['graph_active_cases_total'].values[-1]
+                country_data['graph_active_cases_total'].values[-1]
         except KeyError:
             country_summary["Active Cases"] = not_available_message
 
         try:
             country_summary["Deaths"] = \
-            country_data['coronavirus_deaths_linear'].values[-1]
+                country_data['coronavirus_deaths_linear'].values[-1]
         except KeyError:
             country_summary["Deaths"] = not_available_message
 
         try:
             country_summary["First Case"] = \
-            country_data.index[country_data['graph_cases_daily'] != 0][0]
+                auxiliary.date_to_day_month_year_format(
+                    country_data.index[country_data['graph_cases_daily'] != 0][0])
         except KeyError:
             country_summary["First Case"] = not_available_message
 
@@ -339,41 +350,26 @@ class Countries(CountryEngine):
         print("get_all_countries_summary TIME: ", t2 - t1)
         return df_grouped
 
-
-class World(CountryEngine):
-    def __init__(self):
-        t1 = datetime.now()
-
-        super().__init__()
-        self.detailed_data = self.data_source.get_dataframe_for_all_countries()
-        self.world_data = self.get_world_data()
-
-        t2 = datetime.now()
-        print("ALL COUNTRIES STARTUP TIME: ", t2 - t1)
-
     def get_world_data(self) -> pd.DataFrame:
-        print("self.detailed_data", self.detailed_data)
         grouped_by_day = self.detailed_data.drop("country", axis=1)
         grouped_by_day = grouped_by_day.fillna(0)
-        grouped_by_day["date"] = grouped_by_day["date"].apply(lambda x: "2020 "+x)
+
         grouped_by_day["date_sortable"] = pd.to_datetime(
             grouped_by_day["date"],
-            format="%Y %b %d"
+            # format="%Y %b %d"
         )
-        print("FILLED with 0s", grouped_by_day)
 
-        grouped_by_day = grouped_by_day.\
-            groupby("date_sortable", as_index=False, dropna=False).\
+        grouped_by_day = grouped_by_day. \
+            groupby("date_sortable", as_index=False, dropna=False). \
             sum()
-        print("final", grouped_by_day)
 
         grouped_by_day = grouped_by_day.sort_values(by=["date_sortable"])
         grouped_by_day = grouped_by_day.set_index('date_sortable')
-        # grouped_by_day.to_excel("GROUPED.xlsx")
+        grouped_by_day.to_excel("GROUPED.xlsx")
 
         return grouped_by_day
 
-    def basic_info(self) -> html.Div:
+    def world_basic_info(self) -> html.Div:
         div_name = "World"
         data = self.world_data
         not_available_message = "Data Not Available"
@@ -408,7 +404,7 @@ class World(CountryEngine):
         except TypeError:
             recovered_total = not_available_message
 
-        last_data = data.index[-1]
+        last_data = auxiliary.date_to_day_month_year_format(data.index[-1])
 
         def metric_and_value_div(
                 metric: str, value: Union[str, int]) -> html.Div:
@@ -502,18 +498,18 @@ class World(CountryEngine):
                     id="basic-info-div",
                     className="container",
                     children=[
-                        self.basic_info(),
+                        self.world_basic_info(),
                     ]
                 ),
                 html.Div(
-                    id="graphs",
+                    id="graphs-world",
                     className="container",
                     children=[
                         *[dcc.Loading(
                             id="loading-table",
                             children=[
                                 html.Div(
-                                    id=f"{graph.__name__}-div",
+                                    id=f"{graph.__name__}-world-div",
                                     children=html.Div(
                                         style={"min-height": "100px"}
                                     )
@@ -528,7 +524,7 @@ class World(CountryEngine):
 
 
 def main():
-    countries = Countries()
+    countries = Country()
 
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@ import pandas as pd
 
 import plotly.express as px
 
-from components.main.country.country import Countries
+from components.main.country.country import Country
 
 ISO_CODES_PATH = os.path.join(*[
     "components", "main", "map", "countries_codes_and_coordinates.csv"])
@@ -54,7 +54,7 @@ def set_size():
     )
 
 
-def create_map(countries: Countries, projection,
+def create_map(countries: Country, projection,
                data_shown, size) -> px.choropleth:
     df = countries.summary_data
     # TODO(blake): make some constant
@@ -94,7 +94,7 @@ def create_map(countries: Countries, projection,
     return fig
 
 
-def get_fig(countries: Countries) -> html.Div:
+def get_fig(countries: Country) -> html.Div:
     default_projection = "orthographic"
     default_data_shown = "Cases Total"
     default_size = 700

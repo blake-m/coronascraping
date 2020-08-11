@@ -17,11 +17,9 @@ class BaseGraph(abc.ABC):
 
     def __init__(self,
                  df: pd.DataFrame,
-                 country: str,
                  graph_type: str,
                  date_range: List[int]):
         self.df = df,
-        self.country = country,
         self.graph_type = graph_type
         self.date_range = date_range
 
@@ -85,10 +83,7 @@ class BaseGraph(abc.ABC):
         fig = go.Figure(data=data)
         fig = self.update_figure_layout(fig)
         graph_ready = dcc.Graph(
-            id={
-                "type": "country-graph",
-                "index": f"{self.country}-{self.graph}"
-            },
+            id="country-graph",
             figure=fig
         )
         return graph_ready

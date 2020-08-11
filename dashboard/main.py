@@ -1,14 +1,12 @@
-from components.main.country.country import SingleCountry, Countries, World
+from components.main.country.country import Country
 from components import template
 from corona_app import create_app
 
 
 def main():
     template.bootstrap()
-    single_country = SingleCountry()
-    countries = Countries()
-    world = World()
-    app = create_app(single_country, countries, world)
+    country = Country()
+    app = create_app(country)
     app.run_server(host="0.0.0.0", port=8050, debug=True)
 
 

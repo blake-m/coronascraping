@@ -2,10 +2,10 @@ import dash_core_components as dcc
 import dash_html_components as html
 import dash_table
 
-from components.main.country.country import Countries
+from components.main.country.country import Country
 
 
-def get_fig(countries: Countries) -> html.Div:
+def get_fig(countries: Country) -> html.Div:
     df = countries.summary_data
 
     return html.Div(

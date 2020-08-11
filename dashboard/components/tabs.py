@@ -1,12 +1,12 @@
 import dash_bootstrap_components as dbc
 import dash_html_components as html
 
-from components.main.country.country import SingleCountry
+from components.main.country.country import Country
 from components.main.map.worldmap import set_projection, set_data_shown, \
     set_size
 
 
-def tabs(countries: SingleCountry):
+def tabs(countries: Country):
     return dbc.Tabs(
         [
             dbc.Tab(
@@ -61,6 +61,7 @@ def tabs(countries: SingleCountry):
             dbc.Tab(
                 label="World Details",
                 tab_id="tab-2",
+                className="container",
                 children=[
                     html.Div(
                         className="card p-3 text-body",
@@ -69,30 +70,23 @@ def tabs(countries: SingleCountry):
                                 className="row align-text-top",
                                 children=[
                                     html.Div(
-                                        className="col-4",
+                                        className="col-6",
                                         children=[
                                             dbc.Label(
-                                                "Placeholder",
+                                                "Graph Type",
                                                 className="h6"
-                                            )
+                                            ),
+                                            countries.select_graph_type("radio-graph-type-world"),
                                         ]
                                     ),
                                     html.Div(
-                                        className="col-4",
+                                        className="col-6",
                                         children=[
                                             dbc.Label(
-                                                "Placeholder",
+                                                "Graph Appearance",
                                                 className="h6"
-                                            )
-                                        ]
-                                    ),
-                                    html.Div(
-                                        className="col-4",
-                                        children=[
-                                            dbc.Label(
-                                                "Placeholder",
-                                                className="h6"
-                                            )
+                                            ),
+                                            countries.select_graph_width("world")
                                         ]
                                     ),
                                 ]
@@ -108,7 +102,9 @@ def tabs(countries: SingleCountry):
                                             dbc.Label(
                                                 "Placeholder",
                                                 className="h6"
-                                            )
+                                            ),
+                                            countries.select_date_range(
+                                                scope="world")
                                         ]
                                     )
                                 ]
@@ -150,7 +146,7 @@ def tabs(countries: SingleCountry):
                                                     "Graph Appearance",
                                                     className="h6"
                                                 ),
-                                                countries.select_graph_width()
+                                                countries.select_graph_width("country")
                                             ]
                                         ),
                                         html.Div(
@@ -160,7 +156,7 @@ def tabs(countries: SingleCountry):
                                                     "Graph Type",
                                                     className="h6"
                                                 ),
-                                                countries.select_graph_type(),
+                                                countries.select_graph_type("radio-graph-type-country"),
                                             ]
                                         ),
                                     ]
@@ -176,7 +172,7 @@ def tabs(countries: SingleCountry):
                                                     "Date Range",
                                                     className="h6"
                                                 ),
-                                                countries.select_date_range()
+                                                countries.select_date_range(scope="country")
                                             ]
                                         )
                                     ]

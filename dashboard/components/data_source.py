@@ -134,6 +134,7 @@ class PostgresDataSource(DataSource):
         column_names = [column_tuple[0] for column_tuple in column_names]
 
         df = pd.DataFrame(data=data, columns=column_names)
+        df["date"] = pd.to_datetime(df["date"])
         if date_as_index:
             df = df.set_index("date")
         return df
