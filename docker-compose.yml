@@ -54,7 +54,7 @@ services:
     container_name: corona_dashboard
     command: >
       /bin/bash -c "gunicorn -b 0.0.0.0:8050 wsgi:server"
-    depends_on:a
+    depends_on:
       - db_python_manager
     ports:
       - "8050:8050"

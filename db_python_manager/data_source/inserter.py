@@ -1,5 +1,7 @@
 import logging
 
+import pandas as pd
+
 from data_source.transformers import DataSource
 from db.db import DataBase
 
@@ -30,6 +32,9 @@ class Inserter(object):
                 values = [
                     value if type(value) is str else '0' for value in values
                 ]
+                # TODO(blake): this is gonna break when the year changes
+                index = pd.to_datetime("2020 " + index, format="%Y %b %d")
+
                 values.insert(0, f"'{index}'")
                 values = ', '.join(values)
                 query = f"""

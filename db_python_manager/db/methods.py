@@ -48,7 +48,7 @@ class CRUDMethods(Methods):
 
         query = [query_base] \
                 + [table_name] \
-                + ['(date VARCHAR(12) UNIQUE, '] \
+                + ['(date VARCHAR(32) UNIQUE, '] \
                 + [query_columns] \
                 + query_constraints \
                 + [')']
