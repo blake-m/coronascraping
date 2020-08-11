@@ -73,7 +73,7 @@ class Country(object):
         select_country = dbc.Select(
             id="countries_dropdown",
             options=dropdown_items,
-            value=self.list_all[0],
+            value="poland",   # Explicitly set
             className="custom-select",
         )
         return select_country

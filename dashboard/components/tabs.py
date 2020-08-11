@@ -185,7 +185,7 @@ def tabs(countries: Country):
         ],
         id="card-main",
         card=True,
-        active_tab="tab-1",
+        active_tab="tab-4",
     )
 
     # def switch_tab_content(active_tab, countries: Countries):
