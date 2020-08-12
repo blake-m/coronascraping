@@ -6,7 +6,7 @@ import dash_html_components as html
 
 from components.graphs.figs import INSTALLED_GRAPHS
 
-from components.main import worldtable, world_detail
+from components.main import worldtable
 from components.main.country import Country
 from components.main.map import worldmap
 
@@ -120,8 +120,8 @@ def switch_tab_content(active_tab: str, country: Country) -> html.Div:
     if active_tab == "tab-world-map":
         return worldmap.children
     elif active_tab == "tab-world-detail":
-        return world_detail.children
+        return country.main_div("world")
     elif active_tab == "tab-world-table":
         return worldtable.children
     elif active_tab == "tab-countries":
-        return country.countries_div(GRAPH_CLASSES)
+        return country.main_div("country")

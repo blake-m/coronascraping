@@ -26,18 +26,18 @@ def create_app(country: Country) -> dash.Dash:
         return country.select_date_range()
 
     @app.callback(
-        Output({"type": "graph-countries-div", "index": MATCH}, "children"),
+        Output({"type": "graph-country-div", "index": MATCH}, "children"),
         [
             Input("countries_dropdown", "value"),
             Input("radio-graph-type-country", "value"),
             Input("date-range-slider-country", "value"),
         ],
         [
-            State({"type": "graph-countries-div", "index": MATCH}, "id")
+            State({"type": "graph-country-div", "index": MATCH}, "id")
         ]
     )
-    def update_country_graphs(country_name: str, graph_type: str, date_range: List[int], state_id):
-
+    def update_country_graphs(country_name: str, graph_type: str,
+                              date_range: List[int], state_id):
         print("state", state_id)
         print("INSTALLED_GRAPHS", INSTALLED_GRAPHS)
 
@@ -85,23 +85,31 @@ def create_app(country: Country) -> dash.Dash:
         return worldmap.get_fig(country)
 
     @app.callback(
-        Output("countries-content", "children"),
+        Output({"type": "content", "index": MATCH}, "children"),
         [
             Input("card-main", "active_tab"),
             Input("countries_dropdown", "value"),
             Input("radio-graph-type-country", "value"),
             Input("date-range-slider-country", "value"),
+        ],
+        [
+            State({"type": "content", "index": MATCH}, "id"),
         ]
     )
-    def tab_content(active_tab, country_name, graph_type, date_range):
+    def update_countries_content(
+            active_tab, country_name, graph_type, date_range, state_id):
         print("FIRED", "tab_content")
-        return country.countries_div()
+        print("state_id", state_id)
+        if state_id["index"] == "country":
+            return country.main_div("country")
+        else:
+            return country.main_div("world")
 
     @app.callback(
         Output({"type": "graphs", "index": MATCH}, "className"),
         [Input({"type": "graph-width", "index": MATCH}, "value")],
     )
-    def graph_width(value: []):
+    def update_graph_width(value: []):
         if value:
             return ""
         return "container"
@@ -115,23 +123,8 @@ def create_app(country: Country) -> dash.Dash:
             Input("radio-set-size", "value"),
         ],
     )
-    def set_worldmap(projection: str, data_shown: str, size: int):
+    def update_worldmap_content(projection: str, data_shown: str, size: int):
         return create_map(country, projection, data_shown, size)
-
-    ###########################################################################
-
-    @app.callback(
-        Output("world-detail-content", "children"),
-        [
-            Input("card-main", "active_tab"),
-            Input("countries_dropdown", "value"),
-            Input("radio-graph-type-world", "value"),
-            Input("date-range-slider-world", "value"),
-        ]
-    )
-    def tab_content(active_tab, country_name, graph_type, date_range):
-        print("FIRED", "tab_content")
-        return country.world_div()
 
     main = html.Div(
         className="",
