@@ -7,12 +7,14 @@ import pandas as pd
 
 import plotly.express as px
 
+from components.auxiliary import labeled_div_with_class_and_id
 from components.main.country import Country
 
 ISO_CODES_PATH = os.path.join(*[
     "components", "main", "map", "countries_codes_and_coordinates.csv"])
 
 
+@labeled_div_with_class_and_id(label="Map Projection Type", class_name="col-4")
 def set_projection():
     return dbc.RadioItems(
         options=[
@@ -26,6 +28,7 @@ def set_projection():
     )
 
 
+@labeled_div_with_class_and_id(label="Type of Data", class_name="col-4")
 def set_data_shown():
     return dbc.Select(
         options=[
@@ -41,6 +44,7 @@ def set_data_shown():
     )
 
 
+@labeled_div_with_class_and_id(label="Map Size", class_name="col-4")
 def set_size():
     return dbc.RadioItems(
         options=[

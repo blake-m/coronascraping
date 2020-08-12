@@ -1,203 +1,127 @@
+from collections import Callable
+from typing import List
+
 import dash_bootstrap_components as dbc
 import dash_html_components as html
 
+from components.graphs.figs import INSTALLED_GRAPHS
+
+from components.main import worldtable, world_detail
 from components.main.country import Country
-from components.main.map.worldmap import set_projection, set_data_shown, \
-    set_size
+from components.main.map import worldmap
+
+GRAPH_CLASSES = INSTALLED_GRAPHS.values()
 
 
-def tabs(countries: Country):
-    return dbc.Tabs(
-        [
-            dbc.Tab(
-                label="World Map",
-                tab_id="tab-1",
+def main_tab(label: str) -> Callable:
+    """Returns a dbc.Tab for dbc.Tabs."""
+    tab_id = label.split(" ")
+    tab_id.insert(0, "tab")
+    tab_id = "-".join(tab_id)
+    tab_id = tab_id.lower()
+    print("tab_id\n", tab_id)
+
+    # This nested function definitions are needed to allow the
+    # main_tab_decorator to take arguments
+    def main_tab_decorator(function: Callable) -> Callable:
+        def wrapper(*args) -> dbc.Tab:
+            rows_of_column_divs = function(*args)
+            return dbc.Tab(
+                label=label,
+                tab_id=f"{tab_id}",
                 children=html.Div(
                     className="container",
                     children=[
                         html.Div(
                             className="card p-3 text-body",
                             children=[
-                                html.Div(
-                                    className="row align-text-top",
-                                    children=[
-                                        html.Div(
-                                            className="col-4",
-                                            children=[
-                                                dbc.Label(
-                                                    "Type of Data",
-                                                    className="h6"
-                                                ),
-                                                set_data_shown(),
-                                            ]
-                                        ),
-                                        html.Div(
-                                            className="col-4",
-                                            children=[
-                                                dbc.Label(
-                                                    "Map Projection Type",
-                                                    className="h6"
-                                                ),
-                                                set_projection(),
-                                            ]
-                                        ),
-                                        html.Div(
-                                            className="col-4",
-                                            children=[
-                                                dbc.Label(
-                                                    "Map Size",
-                                                    className="h6"
-                                                ),
-                                                set_size(),
-                                            ]
-                                        ),
-                                    ]
-                                )
-                            ]
-                        )
-                    ]
-                )
-            ),
-            dbc.Tab(
-                label="World Details",
-                tab_id="tab-2",
-                className="container",
-                children=[
-                    html.Div(
-                        className="card p-3 text-body",
-                        children=[
-                            html.Div(
-                                className="row align-text-top",
-                                children=[
-                                    html.Div(
-                                        className="col-6",
-                                        children=[
-                                            dbc.Label(
-                                                "Graph Type",
-                                                className="h6"
-                                            ),
-                                            countries.select_graph_type("radio-graph-type-world"),
-                                        ]
-                                    ),
-                                    html.Div(
-                                        className="col-6",
-                                        children=[
-                                            dbc.Label(
-                                                "Graph Appearance",
-                                                className="h6"
-                                            ),
-                                            countries.select_graph_width("world")
-                                        ]
-                                    ),
-                                ]
-                            ),
-                            html.Div(
-                                className="row align-text-top",
-                                children=[
-                                    html.Div(
-                                        className="col-12 mt-3",
-                                        id="date-range-div-world",
-                                        children=[
 
-                                            dbc.Label(
-                                                "Placeholder",
-                                                className="h6"
-                                            ),
-                                            countries.select_date_range(
-                                                scope="world")
-                                        ]
-                                    )
-                                ]
-                            )
-                        ]
-                    )
-                ]
-            ),
-            dbc.Tab(
-                label="World Table",
-                tab_id="tab-3",
-            ),
-            dbc.Tab(
-                label="Countries",
-                tab_id="tab-4",
-                children=html.Div(
-                    className="container",
-                    children=[
-                        html.Div(
-                            className="card p-3 text-body",
-                            children=[
                                 html.Div(
                                     className="row align-text-top",
-                                    children=[
-                                        html.Div(
-                                            className="col-4",
-                                            children=[
-                                                dbc.Label(
-                                                    "Country",
-                                                    className="h6"
-                                                ),
-                                                countries.select_country_dropdown()
-                                            ]
-                                        ),
-                                        html.Div(
-                                            className="col-4",
-                                            children=[
-                                                dbc.Label(
-                                                    "Graph Appearance",
-                                                    className="h6"
-                                                ),
-                                                countries.select_graph_width("country")
-                                            ]
-                                        ),
-                                        html.Div(
-                                            className="col-4",
-                                            children=[
-                                                dbc.Label(
-                                                    "Graph Type",
-                                                    className="h6"
-                                                ),
-                                                countries.select_graph_type("radio-graph-type-country"),
-                                            ]
-                                        ),
-                                    ]
-                                ),
-                                html.Div(
-                                    className="row align-text-top",
-                                    children=[
-                                        html.Div(
-                                            className="col-12 mt-3",
-                                            id="date-range-div-countries",
-                                            children=[
-                                                dbc.Label(
-                                                    "Date Range",
-                                                    className="h6"
-                                                ),
-                                                countries.select_date_range(scope="country")
-                                            ]
-                                        )
-                                    ]
-                                )
+                                    children=row
+                                ) for row in rows_of_column_divs
                             ]
                         )
                     ]
                 )
-            ),
-        ],
+            )
+        return wrapper
+    return main_tab_decorator
+
+
+@main_tab(label="World Map")
+def world_map_content() -> List[List[html.Div]]:
+    first_row = [
+        worldmap.set_data_shown(),
+        worldmap.set_projection(),
+        worldmap.set_size(),
+    ]
+    return [first_row]
+
+
+@main_tab(label="World Detail")
+def world_detail_content(country: Country) -> List[List[html.Div]]:
+    first_row = [
+        country.select_graph_type("radio-graph-type-world"),
+        country.select_graph_width("world"),
+        html.Div(
+            className="col-8 mt-3",
+            id="date-range-div-world",
+            children=[
+                country.select_date_range(scope="world"),
+            ]
+        )
+    ]
+
+    return [
+        first_row,
+    ]
+
+
+@main_tab(label="Countries")
+def countries_content(country: Country) -> List[List[html.Div]]:
+    first_row = [
+        country.select_country_dropdown(),
+        country.select_graph_type("radio-graph-type-country"),
+        country.select_graph_width("country"),
+    ]
+    second_row = [
+        html.Div(
+            className="col-12",
+            id="date-range-div-countries",
+            children=[
+                country.select_date_range(scope="country")
+            ]
+        )
+    ]
+    return [
+        first_row,
+        second_row
+    ]
+
+
+def tabs(countries: Country) -> dbc.Tabs:
+    return dbc.Tabs([
+        world_map_content(),
+        world_detail_content(countries),
+        dbc.Tab(
+            label="World Table",
+            tab_id="tab-world-table",
+        ),
+        countries_content(countries),
+    ],
         id="card-main",
         card=True,
-        active_tab="tab-1",
+        active_tab="tab-world-map",
     )
 
-    # def switch_tab_content(active_tab, countries: Countries):
-    #     if active_tab == "tab-1":
-    #         return worldmap.children
-    #     if active_tab == "tab-2":
-    #         return worldtable.children
-    #     if active_tab == "tab-3":
-    #         return countries.countries_div([
-    #         graphs.DailyCases,
-    #         graphs.TotalCasesGraph,
-    #         graphs.CasesDailyGraph,
-    #         graphs.DeathsDailyGraph,
-    #         graphs.ActiveCasesTotalGraph,
-    #     ])
+
+def switch_tab_content(active_tab: str, country: Country) -> html.Div:
+    if active_tab == "tab-world-map":
+        return worldmap.children
+    elif active_tab == "tab-world-detail":
+        return world_detail.children
+    elif active_tab == "tab-world-table":
+        return worldtable.children
+    elif active_tab == "tab-countries":
+        return country.countries_div(GRAPH_CLASSES)

@@ -5,15 +5,12 @@ import dash_bootstrap_components as dbc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 
-from components.graphs.figs import INSTALLED_GRAPHS
 from components.main import worldtable, world_detail
 from components.main.map import worldmap
 from components.graphs import figs
 from components.main.country import Country
 from components.main.map.worldmap import create_map
-from components.tabs import tabs
-
-GRAPH_CLASSES = INSTALLED_GRAPHS
+from components import tabs
 
 
 def create_app(
@@ -170,14 +167,7 @@ def create_app(
         [Input("card-main", "active_tab")]
     )
     def tab_content(active_tab):
-        if active_tab == "tab-1":
-            return worldmap.children
-        elif active_tab == "tab-2":
-            return world_detail.children
-        elif active_tab == "tab-3":
-            return worldtable.children
-        elif active_tab == "tab-4":
-            return country.countries_div(GRAPH_CLASSES)
+        return tabs.switch_tab_content(active_tab=active_tab, country=country)
 
     # Loading spinners callbacks
     @app.callback(
@@ -205,7 +195,7 @@ def create_app(
     )
     def tab_content(active_tab, country_name, graph_type, date_range):
         print("FIRED", "tab_content")
-        return country.countries_div(GRAPH_CLASSES)
+        return country.countries_div()
 
     @app.callback(
         Output("graphs-country", "className"),
@@ -218,7 +208,7 @@ def create_app(
 
     @app.callback(
         Output("graphs-world", "className"),
-        [Input("graph_width-world", "value"), ],
+        [Input("graph_width-world", "value")],
     )
     def graph_width(value: []):
         if value:
@@ -250,8 +240,7 @@ def create_app(
     )
     def tab_content(active_tab, country_name, graph_type, date_range):
         print("FIRED", "tab_content")
-        return country.world_div(GRAPH_CLASSES)
-
+        return country.world_div()
 
 
     main = html.Div(
@@ -259,7 +248,7 @@ def create_app(
         children=dbc.Card(
             [
                 dbc.CardHeader(
-                    tabs(country),
+                    tabs.tabs(country),
                     className="card-header text-white bg-primary",
                 ),
                 dbc.CardBody(

@@ -44,7 +44,6 @@ class BaseGraph(abc.ABC):
         return [go.Bar(
             x=x,
             y=y,
-
         )]
 
     @staticmethod

@@ -11,8 +11,11 @@ import numpy as np
 import pandas as pd
 
 from components import auxiliary
+from components.auxiliary import labeled_div_with_class_and_id
+from components.graphs.figs import INSTALLED_GRAPHS
 
 CONFIG_PATH = './config.ini'
+GRAPH_CLASSES = INSTALLED_GRAPHS.values()
 
 
 class Country(object):
@@ -65,6 +68,8 @@ class Country(object):
             self.data_source.get_dataframe_for_one_country(country)
         self.current_country_name = country
 
+    @labeled_div_with_class_and_id(
+        label="Country", class_name="col-8 mb-3")
     def select_country_dropdown(self):
         dropdown_items = [
             {"label": f"{self.correct_country_name(country)}", "value": country}
@@ -73,11 +78,13 @@ class Country(object):
         select_country = dbc.Select(
             id="countries_dropdown",
             options=dropdown_items,
-            value="poland",   # Explicitly set
+            value="poland",  # Explicitly set
             className="custom-select",
         )
         return select_country
 
+    @labeled_div_with_class_and_id(
+        label="Graph Type", class_name="col-2")
     def select_graph_type(self, id_: str) -> dbc.RadioItems:
         return dbc.RadioItems(
             options=[
@@ -90,6 +97,8 @@ class Country(object):
             inline=True,
         )
 
+    @labeled_div_with_class_and_id(
+        label="Graph Appearance", class_name="col-2")
     def select_graph_width(self, graph_type: str):
         return dbc.Checklist(
             options=[
@@ -100,6 +109,8 @@ class Country(object):
             switch=True,
         )
 
+    @labeled_div_with_class_and_id(
+        label="Date Range", class_name="col-12")
     def select_date_range(self, scope: str = "country") -> dcc.RangeSlider:
         if scope == "world":
             data = self.world_data
@@ -127,8 +138,8 @@ class Country(object):
             value=[min_value, max_value]
         )
 
-
-    def countries_div(self, graph_classes: List[str]) -> html.Div:
+    def countries_div(
+            self, graph_classes: List[str] = GRAPH_CLASSES) -> html.Div:
         return html.Div(
             id="countries-content",
             children=[
@@ -315,7 +326,8 @@ class Country(object):
         try:
             country_summary["First Case"] = \
                 auxiliary.date_to_day_month_year_format(
-                    country_data.index[country_data['graph_cases_daily'] != 0][0])
+                    country_data.index[country_data['graph_cases_daily'] != 0][
+                        0])
         except KeyError:
             country_summary["First Case"] = not_available_message
 
@@ -490,7 +502,8 @@ class Country(object):
             ]
         )
 
-    def world_div(self, graph_classes: List[str]) -> html.Div:
+    def world_div(
+            self, graph_classes: List[str] = GRAPH_CLASSES) -> html.Div:
         return html.Div(
             id="world-detail-content",
             children=[

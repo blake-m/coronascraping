@@ -10,8 +10,6 @@ import plotly.graph_objects as go
 
 from components.graphs import base
 
-ROLLING_MEAN_LINE_WIDTH = 4
-
 
 class DailyCases(base.AdvancedBaseGraph):
     graph = [
@@ -92,5 +90,3 @@ class CuredDailyGraph(base.BarAndRollingMeanBaseGraph):
 
 clsmembers = inspect.getmembers(sys.modules[__name__], inspect.isclass)
 INSTALLED_GRAPHS = {cls[1].__name__: cls[1] for cls in clsmembers}
-
-print("INSTALLED_GRAPHS", INSTALLED_GRAPHS)
