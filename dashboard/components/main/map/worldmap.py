@@ -7,7 +7,7 @@ import pandas as pd
 
 import plotly.express as px
 
-from components.auxiliary import labeled_div_with_class_and_id
+from components.auxiliary.reusable import labeled_div_with_class_and_id
 from components.main.country import Country
 
 ISO_CODES_PATH = os.path.join(*[
@@ -121,7 +121,6 @@ children = [
                 id='worldmap-content',
                 style={
                     "min-height": "500px",
-                    # 'height': '1200px'
                 },
             )
         ],

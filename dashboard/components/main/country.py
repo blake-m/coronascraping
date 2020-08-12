@@ -10,8 +10,8 @@ import dash_core_components as dcc
 import numpy as np
 import pandas as pd
 
-from components import auxiliary
-from components.auxiliary import labeled_div_with_class_and_id
+from components.auxiliary import funcs
+from components.auxiliary.reusable import labeled_div_with_class_and_id
 from components.graphs.figs import INSTALLED_GRAPHS
 
 CONFIG_PATH = './config.ini'
@@ -125,7 +125,7 @@ class Country(object):
         mark_values = np.linspace(start=0, stop=max_value, num=10, dtype=int)
 
         marks = {
-            value: auxiliary.date_to_month_day_format(mark) for value, mark
+            value: funcs.date_to_month_day_format(mark) for value, mark
             in zip(value_range, labels)
             if value in mark_values
         }
@@ -192,7 +192,7 @@ class Country(object):
             deaths = not_available_message
 
         try:
-            first_case = auxiliary.date_to_day_month_year_format(
+            first_case = funcs.date_to_day_month_year_format(
                 data.index[data['graph_cases_daily'] != 0][0])
         except KeyError:
             first_case = not_available_message
@@ -207,7 +207,7 @@ class Country(object):
         except TypeError:
             recovered_total = not_available_message
 
-        last_data = auxiliary.date_to_day_month_year_format(data.index[-1])
+        last_data = funcs.date_to_day_month_year_format(data.index[-1])
 
         def metric_and_value_div(
                 metric: str, value: Union[str, int]) -> html.Div:
@@ -325,7 +325,7 @@ class Country(object):
 
         try:
             country_summary["First Case"] = \
-                auxiliary.date_to_day_month_year_format(
+                funcs.date_to_day_month_year_format(
                     country_data.index[country_data['graph_cases_daily'] != 0][
                         0])
         except KeyError:
@@ -416,7 +416,7 @@ class Country(object):
         except TypeError:
             recovered_total = not_available_message
 
-        last_data = auxiliary.date_to_day_month_year_format(data.index[-1])
+        last_data = funcs.date_to_day_month_year_format(data.index[-1])
 
         def metric_and_value_div(
                 metric: str, value: Union[str, int]) -> html.Div:
