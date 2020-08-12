@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Union, Dict
 
-from components import data_source, auxiliary
+from components import data_source
 
 import dash_html_components as html
 import dash_bootstrap_components as dbc

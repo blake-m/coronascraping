@@ -1,4 +1,4 @@
-from components.main.country.country import Country
+from components.main.country import Country
 from components import template
 from corona_app import create_app
 

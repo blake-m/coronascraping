@@ -1,7 +1,7 @@
 import dash_bootstrap_components as dbc
 import dash_html_components as html
 
-from components.main.country.country import Country
+from components.main.country import Country
 from components.main.map.worldmap import set_projection, set_data_shown, \
     set_size
 
@@ -185,7 +185,7 @@ def tabs(countries: Country):
         ],
         id="card-main",
         card=True,
-        active_tab="tab-4",
+        active_tab="tab-1",
     )
 
     # def switch_tab_content(active_tab, countries: Countries):

@@ -1,5 +1,8 @@
 from typing import List, Dict
 
+import inspect
+import sys
+
 import numpy as np
 import pandas as pd
 import plotly
@@ -85,3 +88,9 @@ class CuredDailyGraph(base.BarAndRollingMeanBaseGraph):
     graph = "cases_cured_daily"
     graph_name = "Cases Cured"
     title = "CASES CURED DAILY"
+
+
+clsmembers = inspect.getmembers(sys.modules[__name__], inspect.isclass)
+INSTALLED_GRAPHS = {cls[1].__name__: cls[1] for cls in clsmembers}
+
+print("INSTALLED_GRAPHS", INSTALLED_GRAPHS)

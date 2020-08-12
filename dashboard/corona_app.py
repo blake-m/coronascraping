@@ -5,12 +5,15 @@ import dash_bootstrap_components as dbc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 
+from components.graphs.figs import INSTALLED_GRAPHS
 from components.main import worldtable, world_detail
 from components.main.map import worldmap
-from components.main.country import graphs
-from components.main.country.country import Country
+from components.graphs import figs
+from components.main.country import Country
 from components.main.map.worldmap import create_map
 from components.tabs import tabs
+
+GRAPH_CLASSES = INSTALLED_GRAPHS
 
 
 def create_app(
@@ -27,16 +30,9 @@ def create_app(
 
     # Graphs section ##############################################
     # Callbacks need to be created upfront, hence no dynamic creation
-    graph_classes = [
-        graphs.DailyCases,
-        graphs.TotalCasesGraph,
-        graphs.CasesDailyGraph,
-        graphs.DeathsDailyGraph,
-        graphs.ActiveCasesTotalGraph,
-    ]
 
     @app.callback(
-        Output(f"{graphs.DailyCases.__name__}-div", "children"),
+        Output(f"{figs.DailyCases.__name__}-div", "children"),
         [
             Input("countries_dropdown", "value"),
             Input("radio-graph-type-country", "value"),
@@ -46,11 +42,11 @@ def create_app(
     def country_elements(country_name: str, graph_type: str,
                          date_range: List[int]):
         return [
-            graphs.DailyCases(country.current_country_data,
+            figs.DailyCases(country.current_country_data,
                               graph_type, date_range).get_graph()]
 
     @app.callback(
-        Output(f"{graphs.TotalCasesGraph.__name__}-div", "children"),
+        Output(f"{figs.TotalCasesGraph.__name__}-div", "children"),
         [
             Input("countries_dropdown", "value"),
             Input("radio-graph-type-country", "value"),
@@ -60,11 +56,11 @@ def create_app(
     def country_elements(country_name: str, graph_type: str,
                          date_range: List[int]):
         return [
-            graphs.TotalCasesGraph(country.current_country_data,
+            figs.TotalCasesGraph(country.current_country_data,
                                    graph_type, date_range).get_graph()]
 
     @app.callback(
-        Output(f"{graphs.CasesDailyGraph.__name__}-div", "children"),
+        Output(f"{figs.CasesDailyGraph.__name__}-div", "children"),
         [
             Input("countries_dropdown", "value"),
             Input("radio-graph-type-country", "value"),
@@ -74,11 +70,11 @@ def create_app(
     def country_elements(country_name: str, graph_type: str,
                          date_range: List[int]):
         return [
-            graphs.CasesDailyGraph(country.current_country_data,
+            figs.CasesDailyGraph(country.current_country_data,
                                    graph_type, date_range).get_graph()]
 
     @app.callback(
-        Output(f"{graphs.DeathsDailyGraph.__name__}-div", "children"),
+        Output(f"{figs.DeathsDailyGraph.__name__}-div", "children"),
         [
             Input("countries_dropdown", "value"),
             Input("radio-graph-type-country", "value"),
@@ -88,11 +84,11 @@ def create_app(
     def country_elements(country_name: str, graph_type: str,
                          date_range: List[int]):
         return [
-            graphs.DeathsDailyGraph(country.current_country_data,
+            figs.DeathsDailyGraph(country.current_country_data,
                                     graph_type, date_range).get_graph()]
 
     @app.callback(
-        Output(f"{graphs.ActiveCasesTotalGraph.__name__}-div", "children"),
+        Output(f"{figs.ActiveCasesTotalGraph.__name__}-div", "children"),
         [
             Input("countries_dropdown", "value"),
             Input("radio-graph-type-country", "value"),
@@ -102,12 +98,12 @@ def create_app(
     def country_elements(country_name: str, graph_type: str,
                          date_range: List[int]):
         return [
-            graphs.ActiveCasesTotalGraph(country.current_country_data,
+            figs.ActiveCasesTotalGraph(country.current_country_data,
                                          graph_type, date_range).get_graph()]
 
     # WORLD GRAPHS CALLBACKS
     @app.callback(
-        Output(f"{graphs.DailyCases.__name__}-world-div", "children"),
+        Output(f"{figs.DailyCases.__name__}-world-div", "children"),
         [
             Input("radio-graph-type-world", "value"),
             Input("date-range-slider-world", "value"),
@@ -116,10 +112,10 @@ def create_app(
     def country_elements(graph_type: str,
                          date_range: List[int]):
         return [
-            graphs.DailyCases(country.world_data, graph_type, date_range).get_graph()]
+            figs.DailyCases(country.world_data, graph_type, date_range).get_graph()]
 
     @app.callback(
-        Output(f"{graphs.TotalCasesGraph.__name__}-world-div", "children"),
+        Output(f"{figs.TotalCasesGraph.__name__}-world-div", "children"),
         [
             Input("radio-graph-type-world", "value"),
             Input("date-range-slider-world", "value"),
@@ -128,10 +124,10 @@ def create_app(
     def country_elements(graph_type: str,
                          date_range: List[int]):
         return [
-            graphs.TotalCasesGraph(country.world_data, graph_type, date_range).get_graph()]
+            figs.TotalCasesGraph(country.world_data, graph_type, date_range).get_graph()]
 
     @app.callback(
-        Output(f"{graphs.CasesDailyGraph.__name__}-world-div", "children"),
+        Output(f"{figs.CasesDailyGraph.__name__}-world-div", "children"),
         [
             Input("radio-graph-type-world", "value"),
             Input("date-range-slider-world", "value"),
@@ -140,10 +136,10 @@ def create_app(
     def country_elements(graph_type: str,
                          date_range: List[int]):
         return [
-            graphs.CasesDailyGraph(country.world_data, graph_type, date_range).get_graph()]
+            figs.CasesDailyGraph(country.world_data, graph_type, date_range).get_graph()]
 
     @app.callback(
-        Output(f"{graphs.DeathsDailyGraph.__name__}-world-div", "children"),
+        Output(f"{figs.DeathsDailyGraph.__name__}-world-div", "children"),
         [
             Input("radio-graph-type-world", "value"),
             Input("date-range-slider-world", "value"),
@@ -152,10 +148,10 @@ def create_app(
     def country_elements(graph_type: str,
                          date_range: List[int]):
         return [
-            graphs.DeathsDailyGraph(country.world_data, graph_type, date_range).get_graph()]
+            figs.DeathsDailyGraph(country.world_data, graph_type, date_range).get_graph()]
 
     @app.callback(
-        Output(f"{graphs.ActiveCasesTotalGraph.__name__}-world-div", "children"),
+        Output(f"{figs.ActiveCasesTotalGraph.__name__}-world-div", "children"),
         [
             Input("radio-graph-type-world", "value"),
             Input("date-range-slider-world", "value"),
@@ -164,7 +160,7 @@ def create_app(
     def country_elements(graph_type: str,
                          date_range: List[int]):
         return [
-            graphs.ActiveCasesTotalGraph(country.world_data,
+            figs.ActiveCasesTotalGraph(country.world_data,
                                          graph_type, date_range).get_graph()]
 
     ###########################################################################
@@ -181,7 +177,7 @@ def create_app(
         elif active_tab == "tab-3":
             return worldtable.children
         elif active_tab == "tab-4":
-            return country.countries_div(graph_classes)
+            return country.countries_div(GRAPH_CLASSES)
 
     # Loading spinners callbacks
     @app.callback(
@@ -209,7 +205,7 @@ def create_app(
     )
     def tab_content(active_tab, country_name, graph_type, date_range):
         print("FIRED", "tab_content")
-        return country.countries_div(graph_classes)
+        return country.countries_div(GRAPH_CLASSES)
 
     @app.callback(
         Output("graphs-country", "className"),
@@ -254,7 +250,7 @@ def create_app(
     )
     def tab_content(active_tab, country_name, graph_type, date_range):
         print("FIRED", "tab_content")
-        return country.world_div(graph_classes)
+        return country.world_div(GRAPH_CLASSES)
 
 
 
