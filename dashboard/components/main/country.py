@@ -105,7 +105,10 @@ class Country(object):
                 {"label": "Wide Graphs", "value": True},
             ],
             value=[],
-            id=f"graph_width-{graph_type}",
+            id={
+                "index": graph_type,
+                "type": "graph-width"
+            },
             switch=True,
         )
 
@@ -151,14 +154,20 @@ class Country(object):
                     ]
                 ),
                 html.Div(
-                    id="graphs-country",
+                    id={
+                        "type": "graphs",
+                        "index": "country"
+                    },
                     className="container",
                     children=[
                         *[dcc.Loading(
                             id="loading-table",
                             children=[
                                 html.Div(
-                                    id=f"{graph.__name__}-div",
+                                    id={
+                                        "index": f"{graph.__name__}",
+                                        "type": "graph-countries-div",
+                                    },
                                     children=html.Div(
                                         style={"min-height": "100px"}
                                     )
@@ -515,14 +524,20 @@ class Country(object):
                     ]
                 ),
                 html.Div(
-                    id="graphs-world",
+                    id={
+                        "type": "graphs",
+                        "index": "world"
+                    },
                     className="container",
                     children=[
                         *[dcc.Loading(
                             id="loading-table",
                             children=[
                                 html.Div(
-                                    id=f"{graph.__name__}-world-div",
+                                    id={
+                                        "index": f"{graph.__name__}",
+                                        "type": "graph-world-div",
+                                    },
                                     children=html.Div(
                                         style={"min-height": "100px"}
                                     )

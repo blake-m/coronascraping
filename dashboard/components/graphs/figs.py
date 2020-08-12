@@ -11,7 +11,7 @@ import plotly.graph_objects as go
 from components.graphs import base
 
 
-class DailyCases(base.AdvancedBaseGraph):
+class AllNewDailyCases(base.AdvancedBaseGraph):
     graph = [
         "graph_cases_daily",
         "cases_cured_daily",
@@ -76,7 +76,7 @@ class DeathsDailyGraph(base.BarAndRollingMeanBaseGraph):
     title = "DEATHS DAILY"
 
 
-class ActiveCasesTotalGraph(base.BarAndRollingMeanBaseGraph):
+class TotalActiveCasesGraph(base.BarAndRollingMeanBaseGraph):
     graph = "graph_active_cases_total"
     graph_name = "Active Cases"
     title = "ACTIVE CASES TOTAL"
@@ -88,5 +88,9 @@ class CuredDailyGraph(base.BarAndRollingMeanBaseGraph):
     title = "CASES CURED DAILY"
 
 
-clsmembers = inspect.getmembers(sys.modules[__name__], inspect.isclass)
-INSTALLED_GRAPHS = {cls[1].__name__: cls[1] for cls in clsmembers}
+def get_list_of_graphs_installed_in_this_module():
+    clsmembers = inspect.getmembers(sys.modules[__name__], inspect.isclass)
+    return {cls[1].__name__: cls[1] for cls in clsmembers}
+
+
+INSTALLED_GRAPHS = get_list_of_graphs_installed_in_this_module()
