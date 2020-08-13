@@ -6,3 +6,9 @@ template.bootstrap()
 data = ComponentsData()
 app = create_app(data)
 server = app.server
+
+
+@server.route("/reload_data")
+def reload_data():
+    data.__init__()
+    return """ALL DATA RELOADED"""

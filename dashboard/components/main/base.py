@@ -85,7 +85,7 @@ class ComponentsData(object):
 
         grouped_by_day = grouped_by_day.sort_values(by=["date_sortable"])
         grouped_by_day = grouped_by_day.set_index('date_sortable')
-        grouped_by_day.to_excel("GROUPED.xlsx")
+        # grouped_by_day.to_excel("GROUPED.xlsx")
 
         return grouped_by_day
 

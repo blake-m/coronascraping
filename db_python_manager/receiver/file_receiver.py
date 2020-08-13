@@ -1,6 +1,7 @@
 import logging
 import os
 
+import requests
 from flask import Flask, request, url_for, send_from_directory, redirect
 
 from db import process
@@ -10,6 +11,13 @@ logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 app.config['RECEIVED_FOLDER'] = settings.RECEIVED_FOLDER
+
+
+def send_reload_command_to_dashboard():
+    url = "http://dashboard:8050/reload_data"
+    response = requests.get(url)
+    logging.info("Command to reload the dashboard was sent. Response:")
+    logging.info(response.text)
 
 
 def allowed_file(filename: str) -> bool:
@@ -43,6 +51,7 @@ def upload_file():
 def start_db_process(filename):
     logging.info(f"DB process Process started with file: {filename}")
     process.run(filename)
+    send_reload_command_to_dashboard()
     return f"""
     DB process Process finished with file: {filename}
     """

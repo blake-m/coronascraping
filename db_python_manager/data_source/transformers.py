@@ -46,4 +46,5 @@ class JSONDataSource(DataSource):
         path = os.path.join(
             self.config['DEFAULT']['DataFolder'], data_source_file)
         with open(path, 'rb') as file:
+            print(path)
             return json.load(file)
