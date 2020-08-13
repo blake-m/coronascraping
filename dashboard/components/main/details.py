@@ -19,18 +19,18 @@ GRAPH_CLASSES = INSTALLED_GRAPHS.values()
 NOT_AVAILABLE_MESSAGE = "Data N/A"
 
 
-class Country(object):
+class ComponentsData(object):
     def __init__(self):
         t1 = datetime.now()
-        self.data_source = data_source.PostgresDataSource(CONFIG_PATH)
-        self.list_all = self.data_source.get_countries()
-        self.detailed_data = self.data_source.get_dataframe_for_all_countries()
+        self.source = data_source.PostgresDataSource(CONFIG_PATH)
+        self.list_all = self.source.get_countries()
+        self.all_counries = self.source.get_dataframe_for_all_countries()
         t2 = datetime.now()
         print("COMMON DATA STARTUP TIME:", t2 - t1)
 
         t1 = datetime.now()
         self.current_country_data = \
-            self.data_source.get_dataframe_for_one_country(
+            self.source.get_dataframe_for_one_country(
                 self.list_all[0]
             )
         print("current_country_data\n", self.current_country_data)
@@ -44,111 +44,26 @@ class Country(object):
         print("ALL COUNTRIES STARTUP TIME: ", t2 - t1)
 
         t1 = datetime.now()
-        self.detailed_data = self.data_source.get_dataframe_for_all_countries()
-        self.world_data = self.get_world_data()
-        print("world_data\n", self.world_data)
+        self.all_counries = self.source.get_dataframe_for_all_countries()
+        self.world = self.get_world_data()
+        print("world_data\n", self.world)
         t2 = datetime.now()
 
         print("ALL COUNTRIES STARTUP TIME: ", t2 - t1)
 
-    @staticmethod
-    def correct_country_name(country: str) -> str:
-        if country in ["uk", "us"]:
-            return country.upper()
-        else:
-            name_parts = country.split("_")
-            name_parts = [
-                part.capitalize() if part not in ["the", "and", "of"] else part
-                for part in name_parts
-            ]
-            return " ".join(name_parts)
-
     def set_current_country(self, country: str) -> None:
         print("FIRED (set_current_country)")
         self.current_country_data = \
-            self.data_source.get_dataframe_for_one_country(country)
+            self.source.get_dataframe_for_one_country(country)
         self.current_country_name = country
-
-    @labeled_div_with_class_and_id(
-        label="Country", class_name="col-8 mb-3")
-    def select_country_dropdown(self):
-        dropdown_items = [
-            {"label": f"{self.correct_country_name(country)}", "value": country}
-            for country in self.list_all
-        ]
-        select_country = dbc.Select(
-            id="countries_dropdown",
-            options=dropdown_items,
-            value="poland",  # Explicitly set
-            className="custom-select",
-        )
-        return select_country
-
-    @labeled_div_with_class_and_id(
-        label="Graph Type", class_name="col-2")
-    def select_graph_type(self, id_: str) -> dbc.RadioItems:
-        return dbc.RadioItems(
-            options=[
-                {"label": "Dedicated", "value": "Dedicated"},
-                {"label": "Bar", "value": "Bar"},
-                {"label": "Line", "value": "Line"},
-            ],
-            value="Dedicated",
-            id=id_,
-            inline=True,
-        )
-
-    @labeled_div_with_class_and_id(
-        label="Graph Appearance", class_name="col-2")
-    def select_graph_width(self, graph_type: str):
-        return dbc.Checklist(
-            options=[
-                {"label": "Wide Graphs", "value": True},
-            ],
-            value=[],
-            id={
-                "index": graph_type,
-                "type": "graph-width"
-            },
-            switch=True,
-        )
-
-    @labeled_div_with_class_and_id(
-        label="Date Range", class_name="col-12")
-    def select_date_range(self, scope: str = "country") -> dcc.RangeSlider:
-        if scope == "world":
-            data = self.world_data
-        else:
-            data = self.current_country_data
-        labels = data.index
-        range_size = len(data.index)
-        value_range = list(range(range_size))
-        min_value = min(value_range)
-        max_value = max(value_range)
-
-        mark_values = np.linspace(start=0, stop=max_value, num=10, dtype=int)
-
-        marks = {
-            value: funcs.date_to_month_day_format(mark) for value, mark
-            in zip(value_range, labels)
-            if value in mark_values
-        }
-        return dcc.RangeSlider(
-            id=f'date-range-slider-{scope}',
-            min=min_value,
-            max=max_value,
-            marks=marks,
-            step=1,
-            value=[min_value, max_value]
-        )
 
     def get_all_countries_summary(self) -> pd.DataFrame:
         t1 = datetime.now()
 
         summary_data_list = []
         for country in self.list_all:
-            country_data = self.detailed_data[
-                self.detailed_data["country"] == country]
+            country_data = self.all_counries[
+                self.all_counries["country"] == country]
             country_data_summarized = {
                 "Country": country,
                 **self.get_country_basic_info_dict(country_data)
@@ -157,13 +72,13 @@ class Country(object):
 
         df_grouped = pd.DataFrame(summary_data_list)
         df_grouped["Country"] = df_grouped["Country"].apply(
-            self.correct_country_name)
+            funcs.correct_country_name)
         t2 = datetime.now()
         print("get_all_countries_summary TIME: ", t2 - t1)
         return df_grouped
 
     def get_world_data(self) -> pd.DataFrame:
-        grouped_by_day = self.detailed_data.drop("country", axis=1)
+        grouped_by_day = self.all_counries.drop("country", axis=1)
         grouped_by_day = grouped_by_day.fillna(0)
 
         grouped_by_day["date_sortable"] = pd.to_datetime(
@@ -239,23 +154,102 @@ class Country(object):
 
         try:
             summary_dict["Recovered Total"] = (
-                summary_dict["Cases Total"]
-                - summary_dict["Active Cases"]
-                - summary_dict["Deaths"]
+                    summary_dict["Cases Total"]
+                    - summary_dict["Active Cases"]
+                    - summary_dict["Deaths"]
             )
         except TypeError:
             summary_dict["Recovered Total"] = NOT_AVAILABLE_MESSAGE
 
         return summary_dict
 
+
+class Components(object):
+    def __init__(self):
+        self.data = ComponentsData()
+
+    @labeled_div_with_class_and_id(
+        label="Country", class_name="col-8 mb-3")
+    def select_country_dropdown(self):
+        dropdown_items = [
+            {"label": f"{funcs.correct_country_name(country)}",
+             "value": country}
+            for country in self.data.list_all
+        ]
+        select_country = dbc.Select(
+            id="countries_dropdown",
+            options=dropdown_items,
+            value="poland",  # Explicitly set
+            className="custom-select",
+        )
+        return select_country
+
+    @labeled_div_with_class_and_id(
+        label="Graph Type", class_name="col-2")
+    def select_graph_type(self, id_: str) -> dbc.RadioItems:
+        return dbc.RadioItems(
+            options=[
+                {"label": "Dedicated", "value": "Dedicated"},
+                {"label": "Bar", "value": "Bar"},
+                {"label": "Line", "value": "Line"},
+            ],
+            value="Dedicated",
+            id=id_,
+            inline=True,
+        )
+
+    @labeled_div_with_class_and_id(
+        label="Graph Appearance", class_name="col-2")
+    def select_graph_width(self, graph_type: str):
+        return dbc.Checklist(
+            options=[
+                {"label": "Wide Graphs", "value": True},
+            ],
+            value=[],
+            id={
+                "index": graph_type,
+                "type": "graph-width"
+            },
+            switch=True,
+        )
+
+    @labeled_div_with_class_and_id(
+        label="Date Range", class_name="col-12")
+    def select_date_range(self, scope: str = "country") -> dcc.RangeSlider:
+        if scope == "world":
+            data = self.data.world
+        else:
+            data = self.data.current_country_data
+        labels = data.index
+        range_size = len(data.index)
+        value_range = list(range(range_size))
+        min_value = min(value_range)
+        max_value = max(value_range)
+
+        mark_values = np.linspace(start=0, stop=max_value, num=10, dtype=int)
+
+        marks = {
+            value: funcs.date_to_month_day_format(mark) for value, mark
+            in zip(value_range, labels)
+            if value in mark_values
+        }
+        return dcc.RangeSlider(
+            id=f'date-range-slider-{scope}',
+            min=min_value,
+            max=max_value,
+            marks=marks,
+            step=1,
+            value=[min_value, max_value]
+        )
+
     def basic_info(self, content_type: str) -> html.Div:
         if content_type == "country":
-            div_label = self.current_country_name
-            data = self.current_country_data
+            div_label = self.data.current_country_name
+            data = self.data.current_country_data
         elif content_type == "world":
             div_label = content_type
-            data = self.world_data
-        summary_dict = self.get_country_basic_info_dict(data)
+            data = self.data.world
+        summary_dict = self.data.get_country_basic_info_dict(data)
 
         def metric_and_value_div(metric: str) -> html.Div:
             return html.Div(
@@ -277,7 +271,7 @@ class Country(object):
                     children=[
                         html.H5(
                             className="card-title",
-                            children=self.correct_country_name(div_label)
+                            children=funcs.correct_country_name(div_label)
                         ),
                         html.P(
                             style={"margin-bottom": 0},
@@ -376,7 +370,7 @@ class Country(object):
 
 
 def main():
-    countries = Country()
+    countries = Components()
 
 
 if __name__ == "__main__":

@@ -8,7 +8,7 @@ import pandas as pd
 import plotly.express as px
 
 from components.auxiliary.reusable import labeled_div_with_class_and_id
-from components.main.country import Country
+from components.main.details import ComponentsData
 
 ISO_CODES_PATH = os.path.join(*[
     "components", "main", "map", "countries_codes_and_coordinates.csv"])
@@ -58,9 +58,9 @@ def set_size():
     )
 
 
-def create_map(countries: Country, projection,
+def create_map(data: ComponentsData, projection,
                data_shown, size) -> px.choropleth:
-    df = countries.summary_data
+    df = data.summary_data
     # TODO(blake): make some constant
     df = df.loc[
         (df["Country"] != "Channel Islands")
@@ -98,7 +98,7 @@ def create_map(countries: Country, projection,
     return fig
 
 
-def get_fig(countries: Country) -> html.Div:
+def get_fig(data: ComponentsData) -> html.Div:
     default_projection = "orthographic"
     default_data_shown = "Cases Total"
     default_size = 700
@@ -107,7 +107,7 @@ def get_fig(countries: Country) -> html.Div:
         children=[
             dcc.Graph(
                 id="worldmap-graph",
-                figure=create_map(countries, default_projection,
+                figure=create_map(data, default_projection,
                                   default_data_shown, default_size))
         ]
     )

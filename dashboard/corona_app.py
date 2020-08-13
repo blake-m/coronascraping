@@ -7,14 +7,14 @@ from dash.dependencies import Input, Output, State, MATCH
 
 from components.main import worldtable
 from components.main.map import worldmap
-from components.main.country import Country
+from components.main.details import Components
 from components.main.map.worldmap import create_map
 from components import tabs
 
 from components.graphs.figs import INSTALLED_GRAPHS
 
 
-def create_app(country: Country) -> dash.Dash:
+def create_app(country: Components) -> dash.Dash:
     app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
     @app.callback(
@@ -22,7 +22,7 @@ def create_app(country: Country) -> dash.Dash:
         [Input("countries_dropdown", "value")],
     )
     def update_date_range(country_name: str):
-        country.set_current_country(country_name)
+        country.data.set_current_country(country_name)
         return country.select_date_range()
 
     @app.callback(
@@ -43,7 +43,7 @@ def create_app(country: Country) -> dash.Dash:
 
         graph_class = INSTALLED_GRAPHS[state_id["index"]]
         graph = graph_class(
-            country.current_country_data, graph_type, date_range).get_graph()
+            country.data.current_country_data, graph_type, date_range).get_graph()
         return graph
 
     @app.callback(
@@ -59,7 +59,7 @@ def create_app(country: Country) -> dash.Dash:
     def update_world_graphs(graph_type: str, date_range: List[int], state_id):
         graph_class = INSTALLED_GRAPHS[state_id["index"]]
         graph = graph_class(
-            country.world_data, graph_type, date_range).get_graph()
+            country.data.world, graph_type, date_range).get_graph()
         return graph
 
     @app.callback(
@@ -75,14 +75,14 @@ def create_app(country: Country) -> dash.Dash:
         [Input("card-main", "active_tab")]
     )
     def update_worldtable_loading_spinner(active_tab):
-        return worldtable.get_fig(country)
+        return worldtable.get_fig(country.data)
 
     @app.callback(
         Output("worldmap-content", "children"),
         [Input("card-main", "active_tab")]
     )
     def update_worldmap_loading_spinner(active_tab):
-        return worldmap.get_fig(country)
+        return worldmap.get_fig(country.data)
 
     @app.callback(
         Output({"type": "content", "index": MATCH}, "children"),
@@ -124,7 +124,7 @@ def create_app(country: Country) -> dash.Dash:
         ],
     )
     def update_worldmap_content(projection: str, data_shown: str, size: int):
-        return create_map(country, projection, data_shown, size)
+        return create_map(country.data, projection, data_shown, size)
 
     main = html.Div(
         className="",

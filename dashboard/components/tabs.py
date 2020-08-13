@@ -7,7 +7,7 @@ import dash_html_components as html
 from components.graphs.figs import INSTALLED_GRAPHS
 
 from components.main import worldtable
-from components.main.country import Country
+from components.main.details import Components
 from components.main.map import worldmap
 
 GRAPH_CLASSES = INSTALLED_GRAPHS.values()
@@ -60,7 +60,7 @@ def world_map_content() -> List[List[html.Div]]:
 
 
 @main_tab(label="World Detail")
-def world_detail_content(country: Country) -> List[List[html.Div]]:
+def world_detail_content(country: Components) -> List[List[html.Div]]:
     first_row = [
         country.select_graph_type("radio-graph-type-world"),
         country.select_graph_width("world"),
@@ -79,7 +79,7 @@ def world_detail_content(country: Country) -> List[List[html.Div]]:
 
 
 @main_tab(label="Countries")
-def countries_content(country: Country) -> List[List[html.Div]]:
+def countries_content(country: Components) -> List[List[html.Div]]:
     first_row = [
         country.select_country_dropdown(),
         country.select_graph_type("radio-graph-type-country"),
@@ -100,7 +100,7 @@ def countries_content(country: Country) -> List[List[html.Div]]:
     ]
 
 
-def tabs(countries: Country) -> dbc.Tabs:
+def tabs(countries: Components) -> dbc.Tabs:
     return dbc.Tabs([
         world_map_content(),
         world_detail_content(countries),
@@ -116,7 +116,7 @@ def tabs(countries: Country) -> dbc.Tabs:
     )
 
 
-def switch_tab_content(active_tab: str, country: Country) -> html.Div:
+def switch_tab_content(active_tab: str, country: Components) -> html.Div:
     if active_tab == "tab-world-map":
         return worldmap.children
     elif active_tab == "tab-world-detail":

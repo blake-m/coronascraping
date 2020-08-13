@@ -2,11 +2,11 @@ import dash_core_components as dcc
 import dash_html_components as html
 import dash_table
 
-from components.main.country import Country
+from components.main.details import ComponentsData
 
 
-def get_fig(countries: Country) -> html.Div:
-    df = countries.summary_data
+def get_fig(data: ComponentsData) -> html.Div:
+    df = data.summary_data
     bootstrap_colors = {
         "primary": "#007bff",
         "table-primary": "#b8daff",
