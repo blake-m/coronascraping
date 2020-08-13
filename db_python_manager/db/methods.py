@@ -33,7 +33,7 @@ class CRUDMethods(Methods):
             columns: List[Tuple[str, str, str]],
             table_constraints: List[str] = None,
             db_name: Optional[str] = None
-    ) -> list:
+    ):
         query_columns = [' '.join(column) for column in columns]
         query_columns = [column.replace('-', '_') for column in query_columns]
         query_columns = ', '.join(query_columns)

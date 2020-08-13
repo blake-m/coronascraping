@@ -1,10 +1,8 @@
-from components.main.base import CountryAndWorldComponentsBase
+from components.main.base import ComponentsData
 from components import template
 from corona_app import create_app
 
-
 template.bootstrap()
-template.bootstrap()
-country = CountryAndWorldComponentsBase()
-app = create_app(country)
+data = ComponentsData()
+app = create_app(data)
 server = app.server
