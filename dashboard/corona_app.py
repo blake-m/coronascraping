@@ -43,7 +43,7 @@ def create_app(country: Components) -> dash.Dash:
 
         graph_class = INSTALLED_GRAPHS[state_id["index"]]
         graph = graph_class(
-            country.data.current_country_data, graph_type, date_range).get_graph()
+            country.data.current_country, graph_type, date_range).get_graph()
         return graph
 
     @app.callback(

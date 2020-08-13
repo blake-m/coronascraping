@@ -1,8 +1,6 @@
 from datetime import datetime
 from typing import List, Dict
 
-from components import data_source
-
 import dash_html_components as html
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
@@ -10,8 +8,10 @@ import dash_core_components as dcc
 import numpy as np
 import pandas as pd
 
+from components import data_source
 from components.auxiliary import funcs
-from components.auxiliary.reusable import labeled_div_with_class_and_id
+from components.auxiliary.reusable import labeled_div_with_class_and_id, \
+    print_startup_time
 from components.graphs.figs import INSTALLED_GRAPHS
 
 CONFIG_PATH = './config.ini'
@@ -20,48 +20,36 @@ NOT_AVAILABLE_MESSAGE = "Data N/A"
 
 
 class ComponentsData(object):
+    @print_startup_time("ALL COMPONENTS DATA")
     def __init__(self):
-        t1 = datetime.now()
-        self.source = data_source.PostgresDataSource(CONFIG_PATH)
-        self.list_all = self.source.get_countries()
-        self.all_counries = self.source.get_dataframe_for_all_countries()
-        t2 = datetime.now()
-        print("COMMON DATA STARTUP TIME:", t2 - t1)
+        @print_startup_time("COMMON DATA")
+        def init_common_data():
+            self.source = data_source.PostgresDataSource(CONFIG_PATH)
+            self.all_countries_names_list = self.source.get_countries()
+            self.all_counries = self.source.get_dataframe_for_all_countries()
 
-        t1 = datetime.now()
-        self.current_country_data = \
-            self.source.get_dataframe_for_one_country(
-                self.list_all[0]
-            )
-        print("current_country_data\n", self.current_country_data)
-        self.current_country_name = self.list_all[0]
-        t2 = datetime.now()
-        print("COUNTRIES STARTUP TIME: ", t2 - t1)
+        @print_startup_time("CURRENT SINGLE COUNTRY DATA")
+        def init_current_single_country_data():
+            self.current_country = \
+                self.source.get_dataframe_for_one_country(
+                    self.all_countries_names_list[0])
+            self.current_country_name = self.all_countries_names_list[0]
 
-        t1 = datetime.now()
-        self.summary_data = self.get_all_countries_summary()
-        t2 = datetime.now()
-        print("ALL COUNTRIES STARTUP TIME: ", t2 - t1)
+        @print_startup_time("WORLD DATA")
+        def init_world_data():
+            self.summary_data = self.get_all_countries_summary()
+            self.all_counries = self.source.get_dataframe_for_all_countries()
+            self.world = self.get_world_data()
 
-        t1 = datetime.now()
-        self.all_counries = self.source.get_dataframe_for_all_countries()
-        self.world = self.get_world_data()
-        print("world_data\n", self.world)
-        t2 = datetime.now()
-
-        print("ALL COUNTRIES STARTUP TIME: ", t2 - t1)
-
-    def set_current_country(self, country: str) -> None:
-        print("FIRED (set_current_country)")
-        self.current_country_data = \
-            self.source.get_dataframe_for_one_country(country)
-        self.current_country_name = country
+        init_common_data()
+        init_current_single_country_data()
+        init_world_data()
 
     def get_all_countries_summary(self) -> pd.DataFrame:
         t1 = datetime.now()
 
         summary_data_list = []
-        for country in self.list_all:
+        for country in self.all_countries_names_list:
             country_data = self.all_counries[
                 self.all_counries["country"] == country]
             country_data_summarized = {
@@ -96,49 +84,57 @@ class ComponentsData(object):
 
         return grouped_by_day
 
-    def get_cases_total_or_no_data_message(self, data: pd.DataFrame) -> str:
+    @staticmethod
+    def get_cases_total_or_no_data_message(data: pd.DataFrame) -> str:
         try:
             return data['coronavirus_cases_linear'].values[-1]
         except KeyError:
             return NOT_AVAILABLE_MESSAGE
 
-    def get_active_cases_or_no_data_message(self, data: pd.DataFrame) -> str:
+    @staticmethod
+    def get_active_cases_or_no_data_message(data: pd.DataFrame) -> str:
         try:
             return data['graph_active_cases_total'].values[-1]
         except KeyError:
             return NOT_AVAILABLE_MESSAGE
 
-    def get_new_cases_or_no_data_message(self, data: pd.DataFrame) -> str:
+    @staticmethod
+    def get_new_cases_or_no_data_message(data: pd.DataFrame) -> str:
         try:
             return data['graph_cases_daily'].values[-1]
         except KeyError:
             return NOT_AVAILABLE_MESSAGE
 
-    def get_deaths_total_or_no_data_message(self, data: pd.DataFrame) -> str:
+    @staticmethod
+    def get_deaths_total_or_no_data_message(data: pd.DataFrame) -> str:
         try:
             return data['coronavirus_deaths_linear'].values[-1]
         except KeyError:
             return NOT_AVAILABLE_MESSAGE
 
-    def get_first_case_or_no_data_message(self, data: pd.DataFrame) -> str:
+    @staticmethod
+    def get_first_case_or_no_data_message(data: pd.DataFrame) -> str:
         try:
             return data.index[data['graph_cases_daily'] != 0][0]
         except KeyError:
             return NOT_AVAILABLE_MESSAGE
 
-    def get_daily_peak_or_no_data_message(self, data: pd.DataFrame) -> str:
+    @staticmethod
+    def get_daily_peak_or_no_data_message(data: pd.DataFrame) -> str:
         try:
             return data['graph_cases_daily'].values.max()
         except KeyError:
             return NOT_AVAILABLE_MESSAGE
 
-    def get_recovered_total_or_no_data_message(self, data: pd.DataFrame) -> str:
+    @staticmethod
+    def get_recovered_total_or_no_data_message(data: pd.DataFrame) -> str:
         try:
             return data.index[data['graph_cases_daily'] != 0][0]
         except KeyError:
             return NOT_AVAILABLE_MESSAGE
 
-    def get_latest_data(self, data: pd.DataFrame) -> str:
+    @staticmethod
+    def get_latest_data(data: pd.DataFrame) -> str:
         return funcs.date_to_day_month_year_format(data.index[-1])
 
     def get_country_basic_info_dict(self, data: pd.DataFrame) -> Dict:
@@ -168,13 +164,12 @@ class Components(object):
     def __init__(self):
         self.data = ComponentsData()
 
-    @labeled_div_with_class_and_id(
-        label="Country", class_name="col-8 mb-3")
+    @labeled_div_with_class_and_id(label="Country", class_name="col-8 mb-3")
     def select_country_dropdown(self):
         dropdown_items = [
             {"label": f"{funcs.correct_country_name(country)}",
              "value": country}
-            for country in self.data.list_all
+            for country in self.data.all_countries_names_list
         ]
         select_country = dbc.Select(
             id="countries_dropdown",
@@ -184,8 +179,7 @@ class Components(object):
         )
         return select_country
 
-    @labeled_div_with_class_and_id(
-        label="Graph Type", class_name="col-2")
+    @labeled_div_with_class_and_id(label="Graph Type", class_name="col-2")
     def select_graph_type(self, id_: str) -> dbc.RadioItems:
         return dbc.RadioItems(
             options=[
@@ -213,13 +207,12 @@ class Components(object):
             switch=True,
         )
 
-    @labeled_div_with_class_and_id(
-        label="Date Range", class_name="col-12")
+    @labeled_div_with_class_and_id(label="Date Range", class_name="col-12")
     def select_date_range(self, scope: str = "country") -> dcc.RangeSlider:
         if scope == "world":
             data = self.data.world
         else:
-            data = self.data.current_country_data
+            data = self.data.current_country
         labels = data.index
         range_size = len(data.index)
         value_range = list(range(range_size))
@@ -245,7 +238,7 @@ class Components(object):
     def basic_info(self, content_type: str) -> html.Div:
         if content_type == "country":
             div_label = self.data.current_country_name
-            data = self.data.current_country_data
+            data = self.data.current_country
         elif content_type == "world":
             div_label = content_type
             data = self.data.world
@@ -316,7 +309,8 @@ class Components(object):
                             className="text-muted",
                             style={"margin-bottom": 0},
                             children=[
-                                f"Latest data comes from: {summary_dict['Latest Data']}"
+                                f"Latest data comes from: "
+                                f"{summary_dict['Latest Data']}"
                             ]
                         )
                     ]
