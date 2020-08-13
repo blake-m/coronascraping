@@ -2,7 +2,7 @@
     "country_graphs_data_extracting_spider": {
         "name": "countries",
         "last_run": {
-            "date": "2020-08-12 06:48:53.771302"
+            "date": "2020-08-13 05:48:34.950438"
         },
         "output_file": {
             "name": "worldmeter.json",

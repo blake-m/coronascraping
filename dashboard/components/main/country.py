@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Union, Dict
+from typing import List, Dict
 
 from components import data_source
 
@@ -16,6 +16,7 @@ from components.graphs.figs import INSTALLED_GRAPHS
 
 CONFIG_PATH = './config.ini'
 GRAPH_CLASSES = INSTALLED_GRAPHS.values()
+NOT_AVAILABLE_MESSAGE = "Data N/A"
 
 
 class Country(object):
@@ -150,7 +151,7 @@ class Country(object):
                 self.detailed_data["country"] == country]
             country_data_summarized = {
                 "Country": country,
-                **self.get_country_basic_info(country_data)
+                **self.get_country_basic_info_dict(country_data)
             }
             summary_data_list.append(country_data_summarized)
 
@@ -180,57 +181,91 @@ class Country(object):
 
         return grouped_by_day
 
-    def world_basic_info(self) -> html.Div:
-        div_name = "World"
-        data = self.world_data
-        not_available_message = "Data Not Available"
-
+    def get_cases_total_or_no_data_message(self, data: pd.DataFrame) -> str:
         try:
-            cases_total = int(data['coronavirus_cases_linear'].values[-1])
+            return data['coronavirus_cases_linear'].values[-1]
         except KeyError:
-            cases_total = not_available_message
+            return NOT_AVAILABLE_MESSAGE
 
+    def get_active_cases_or_no_data_message(self, data: pd.DataFrame) -> str:
         try:
-            active_cases = int(data['graph_active_cases_total'].values[-1])
+            return data['graph_active_cases_total'].values[-1]
         except KeyError:
-            active_cases = not_available_message
+            return NOT_AVAILABLE_MESSAGE
 
+    def get_new_cases_or_no_data_message(self, data: pd.DataFrame) -> str:
         try:
-            deaths = int(data['coronavirus_deaths_linear'].values[-1])
+            return data['graph_cases_daily'].values[-1]
         except KeyError:
-            deaths = not_available_message
+            return NOT_AVAILABLE_MESSAGE
 
+    def get_deaths_total_or_no_data_message(self, data: pd.DataFrame) -> str:
         try:
-            first_case = data.index[data['graph_cases_daily'] != 0][0]
+            return data['coronavirus_deaths_linear'].values[-1]
         except KeyError:
-            first_case = not_available_message
+            return NOT_AVAILABLE_MESSAGE
 
+    def get_first_case_or_no_data_message(self, data: pd.DataFrame) -> str:
         try:
-            daily_peak = int(data['graph_cases_daily'].values.max())
+            return data.index[data['graph_cases_daily'] != 0][0]
         except KeyError:
-            daily_peak = not_available_message
+            return NOT_AVAILABLE_MESSAGE
+
+    def get_daily_peak_or_no_data_message(self, data: pd.DataFrame) -> str:
+        try:
+            return data['graph_cases_daily'].values.max()
+        except KeyError:
+            return NOT_AVAILABLE_MESSAGE
+
+    def get_recovered_total_or_no_data_message(self, data: pd.DataFrame) -> str:
+        try:
+            return data.index[data['graph_cases_daily'] != 0][0]
+        except KeyError:
+            return NOT_AVAILABLE_MESSAGE
+
+    def get_latest_data(self, data: pd.DataFrame) -> str:
+        return funcs.date_to_day_month_year_format(data.index[-1])
+
+    def get_country_basic_info_dict(self, data: pd.DataFrame) -> Dict:
+        summary_dict = {
+            "Cases Total": self.get_cases_total_or_no_data_message(data),
+            "Daily Peak": self.get_daily_peak_or_no_data_message(data),
+            "New Cases": self.get_new_cases_or_no_data_message(data),
+            "Active Cases": self.get_active_cases_or_no_data_message(data),
+            "Deaths": self.get_deaths_total_or_no_data_message(data),
+            "First Case": self.get_first_case_or_no_data_message(data),
+            "Latest Data": self.get_latest_data(data),
+        }
 
         try:
-            recovered_total = cases_total - active_cases - deaths
+            summary_dict["Recovered Total"] = (
+                summary_dict["Cases Total"]
+                - summary_dict["Active Cases"]
+                - summary_dict["Deaths"]
+            )
         except TypeError:
-            recovered_total = not_available_message
+            summary_dict["Recovered Total"] = NOT_AVAILABLE_MESSAGE
 
-        last_data = funcs.date_to_day_month_year_format(data.index[-1])
+        return summary_dict
 
-        def metric_and_value_div(
-                metric: str, value: Union[str, int]) -> html.Div:
+    def basic_info(self, content_type: str) -> html.Div:
+        if content_type == "country":
+            div_label = self.current_country_name
+            data = self.current_country_data
+        elif content_type == "world":
+            div_label = content_type
+            data = self.world_data
+        summary_dict = self.get_country_basic_info_dict(data)
+
+        def metric_and_value_div(metric: str) -> html.Div:
             return html.Div(
                 className="col",
                 children=[
                     html.H5(
                         className="card-title",
-                        children=f"{metric}"
+                        children=metric
                     ),
-                    html.P(
-                        children=[
-                            f"{value}"
-                        ]
-                    ),
+                    html.P(children=summary_dict[metric]),
                 ]
             )
 
@@ -242,7 +277,7 @@ class Country(object):
                     children=[
                         html.H5(
                             className="card-title",
-                            children=self.correct_country_name(div_name)
+                            children=self.correct_country_name(div_label)
                         ),
                         html.P(
                             style={"margin-bottom": 0},
@@ -260,15 +295,12 @@ class Country(object):
                             children=[
                                 metric_and_value_div(
                                     metric="Cases Total",
-                                    value=cases_total
                                 ),
                                 metric_and_value_div(
                                     metric="Active Cases",
-                                    value=active_cases
                                 ),
                                 metric_and_value_div(
                                     metric="Deaths",
-                                    value=deaths
                                 ),
                             ]
                         ),
@@ -276,16 +308,13 @@ class Country(object):
                             className="row",
                             children=[
                                 metric_and_value_div(
-                                    metric="Recovered",
-                                    value=recovered_total
+                                    metric="Recovered Total",
                                 ),
                                 metric_and_value_div(
                                     metric="First Case",
-                                    value=first_case
                                 ),
                                 metric_and_value_div(
                                     metric="Daily Peak",
-                                    value=daily_peak
                                 ),
                             ]
                         ),
@@ -293,178 +322,7 @@ class Country(object):
                             className="text-muted",
                             style={"margin-bottom": 0},
                             children=[
-                                f"Latest data comes from: {last_data}"
-                            ]
-                        )
-                    ]
-                ),
-            ]
-        )
-
-    def get_country_basic_info(self, country_data: pd.DataFrame) -> Dict:
-        not_available_message = "N/A"
-        country_summary = {}
-        try:
-            country_summary["Cases Total"] = \
-                country_data['coronavirus_cases_linear'].values[-1]
-        except KeyError:
-            country_summary["Cases Total"] = not_available_message
-
-        try:
-            country_summary["New Cases"] = \
-                country_data['graph_cases_daily'].values[-1]
-            country_summary["Daily Peak"] = country_data[
-                'graph_cases_daily'].values.max()
-        except KeyError:
-            country_summary["New Cases"] = not_available_message
-            country_summary["Daily Peak"] = not_available_message
-
-        try:
-            country_summary["Active Cases"] = \
-                country_data['graph_active_cases_total'].values[-1]
-        except KeyError:
-            country_summary["Active Cases"] = not_available_message
-
-        try:
-            country_summary["Deaths"] = \
-                country_data['coronavirus_deaths_linear'].values[-1]
-        except KeyError:
-            country_summary["Deaths"] = not_available_message
-
-        try:
-            country_summary["First Case"] = \
-                funcs.date_to_day_month_year_format(
-                    country_data.index[country_data['graph_cases_daily'] != 0][
-                        0])
-        except KeyError:
-            country_summary["First Case"] = not_available_message
-
-        try:
-            country_summary["Recovered Total"] = country_summary[
-                                                     "Cases Total"] - \
-                                                 country_summary[
-                                                     "Active Cases"] - \
-                                                 country_summary["Deaths"]
-        except TypeError:
-            country_summary["Recovered Total"] = not_available_message
-
-        return country_summary
-
-    def basic_info(self) -> html.Div:
-        country = self.current_country_name
-        data = self.current_country_data
-        not_available_message = "Data Not Available"
-
-        try:
-            cases_total = int(data['coronavirus_cases_linear'].values[-1])
-        except KeyError:
-            cases_total = not_available_message
-
-        try:
-            active_cases = int(data['graph_active_cases_total'].values[-1])
-        except KeyError:
-            active_cases = not_available_message
-
-        try:
-            deaths = int(data['coronavirus_deaths_linear'].values[-1])
-        except KeyError:
-            deaths = not_available_message
-
-        try:
-            first_case = funcs.date_to_day_month_year_format(
-                data.index[data['graph_cases_daily'] != 0][0])
-        except KeyError:
-            first_case = not_available_message
-
-        try:
-            daily_peak = int(data['graph_cases_daily'].values.max())
-        except KeyError:
-            daily_peak = not_available_message
-
-        try:
-            recovered_total = cases_total - active_cases - deaths
-        except TypeError:
-            recovered_total = not_available_message
-
-        last_data = funcs.date_to_day_month_year_format(data.index[-1])
-
-        def metric_and_value_div(
-                metric: str, value: Union[str, int]) -> html.Div:
-            return html.Div(
-                className="col",
-                children=[
-                    html.H5(
-                        className="card-title",
-                        children=f"{metric}"
-                    ),
-                    html.P(
-                        children=[
-                            f"{value}"
-                        ]
-                    ),
-                ]
-            )
-
-        return html.Div(
-            className="card text-center",
-            children=[
-                html.Div(
-                    className="card-header text-white bg-primary",
-                    children=[
-                        html.H5(
-                            className="card-title",
-                            children=self.correct_country_name(country)
-                        ),
-                        html.P(
-                            style={"margin-bottom": 0},
-                            children=[
-                                "Basic Information"
-                            ]
-                        ),
-                    ]
-                ),
-                html.Div(
-                    className="card-body",
-                    children=[
-                        html.Div(
-                            className="row",
-                            children=[
-                                metric_and_value_div(
-                                    metric="Cases Total",
-                                    value=cases_total
-                                ),
-                                metric_and_value_div(
-                                    metric="Active Cases",
-                                    value=active_cases
-                                ),
-                                metric_and_value_div(
-                                    metric="Deaths",
-                                    value=deaths
-                                ),
-                            ]
-                        ),
-                        html.Div(
-                            className="row",
-                            children=[
-                                metric_and_value_div(
-                                    metric="Recovered",
-                                    value=recovered_total
-                                ),
-                                metric_and_value_div(
-                                    metric="First Case",
-                                    value=first_case
-                                ),
-                                metric_and_value_div(
-                                    metric="Daily Peak",
-                                    value=daily_peak
-                                ),
-                            ]
-                        ),
-                        html.P(
-                            className="text-muted",
-                            style={"margin-bottom": 0},
-                            children=[
-                                f"Latest data comes from: {last_data}"
+                                f"Latest data comes from: {summary_dict['Latest Data']}"
                             ]
                         )
                     ]
@@ -476,8 +334,6 @@ class Country(object):
             self, content_type: str,
             graph_classes: List[str] = GRAPH_CLASSES) -> html.Div:
 
-        basic_info = self.basic_info() if content_type == "country" else self.world_basic_info()
-
         return html.Div(
             id={
                 "type": "content",
@@ -488,7 +344,7 @@ class Country(object):
                     id="basic-info-div",
                     className="container",
                     children=[
-                        basic_info,
+                        self.basic_info(content_type=content_type),
                     ]
                 ),
                 html.Div(
