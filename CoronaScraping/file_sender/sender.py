@@ -1,5 +1,6 @@
-import requests
+import logging
 
+import requests
 
 def run(file_path: str):
     url = "http://corona_db_manager:5000"
@@ -7,7 +8,7 @@ def run(file_path: str):
     files = {'file': fin}
     try:
         r = requests.post(url, files=files)
-        print(r.text)
+        logging.info(r.text)
     finally:
         fin.close()
 

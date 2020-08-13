@@ -11,4 +11,5 @@ server = app.server
 @server.route("/reload_data")
 def reload_data():
     data.__init__()
-    return """ALL DATA RELOADED"""
+    print("ALL DATA RELOADED")
+    return "ALL DATA RELOADED"
