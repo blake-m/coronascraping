@@ -1,3 +1,4 @@
+import abc
 from datetime import datetime
 from typing import List, Dict
 
@@ -15,7 +16,6 @@ from components.auxiliary.reusable import labeled_div_with_class_and_id, \
 from components.graphs.figs import INSTALLED_GRAPHS
 
 CONFIG_PATH = './config.ini'
-GRAPH_CLASSES = INSTALLED_GRAPHS.values()
 NOT_AVAILABLE_MESSAGE = "Data N/A"
 
 
@@ -166,9 +166,15 @@ class ComponentsData(object):
         return summary_dict
 
 
-class Components(object):
-    def __init__(self):
-        self.data = ComponentsData()
+class ComponentsBase(abc.ABC):
+    def __init__(self, data: ComponentsData):
+        self.data = data
+
+
+class CountryAndWorldComponents(ComponentsBase):
+    def __init__(self, data: ComponentsData):
+        super().__init__(data)
+        self.graph_classes = INSTALLED_GRAPHS.values()
 
     @labeled_div_with_class_and_id(label="Country", class_name="col-8 mb-3")
     def select_country_dropdown(self):
@@ -344,7 +350,8 @@ class Components(object):
             ]
         )
 
-    def children(self, content_type: str):
+    @staticmethod
+    def children(content_type: str):
         return [
             html.Div(
                 id={
@@ -356,16 +363,30 @@ class Components(object):
             )
         ]
 
-    def content(
-            self, content_type: str,
-            graph_classes: List[str] = GRAPH_CLASSES) -> List[html.Div]:
+    def graph_divs_list(self, content_type: str) -> List[dcc.Loading]:
+        return [
+            dcc.Loading(
+                id="loading-table",
+                children=[
+                    html.Div(
+                        id={
+                            "index": f"{graph.__name__}",
+                            "type": f"graph-{content_type}-div",
+                        },
+                        children=html.Div(
+                            style={"min-height": "100px"}
+                        )
+                    )
+                ]
+            ) for graph in self.graph_classes
+        ]
+
+    def content(self, content_type: str) -> List[html.Div]:
         return [
             html.Div(
                 id="basic-info-div",
                 className="container",
-                children=[
-                    self.basic_info(content_type=content_type),
-                ]
+                children=[self.basic_info(content_type=content_type)]
             ),
             html.Div(
                 id={
@@ -373,32 +394,6 @@ class Components(object):
                     "index": content_type
                 },
                 className="container",
-                children=[
-                    *[dcc.Loading(
-                        id="loading-table",
-                        children=[
-                            html.Div(
-                                id={
-                                    "index": f"{graph.__name__}",
-                                    "type": f"graph-{content_type}-div",
-                                },
-                                children=html.Div(
-                                    style={"min-height": "100px"}
-                                )
-                            )
-                        ]
-                    ) for graph in graph_classes]
-                ]
+                children=[*self.graph_divs_list(content_type=content_type)]
             )
         ]
-
-
-
-
-
-def main():
-    countries = Components()
-
-
-if __name__ == "__main__":
-    main()
