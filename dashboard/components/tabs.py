@@ -62,15 +62,9 @@ def world_map_content() -> List[List[html.Div]]:
 @main_tab(label="World Detail")
 def world_detail_content(country: Components) -> List[List[html.Div]]:
     first_row = [
-        country.select_graph_type("radio-graph-type-world"),
+        country.select_graph_type("world"),
         country.select_graph_width("world"),
-        html.Div(
-            className="col-8 mt-3",
-            id="date-range-div-world",
-            children=[
-                country.select_date_range(scope="world"),
-            ]
-        )
+        country.date_range_div(content_type="world")
     ]
 
     return [
@@ -82,17 +76,11 @@ def world_detail_content(country: Components) -> List[List[html.Div]]:
 def countries_content(country: Components) -> List[List[html.Div]]:
     first_row = [
         country.select_country_dropdown(),
-        country.select_graph_type("radio-graph-type-country"),
+        country.select_graph_type("country"),
         country.select_graph_width("country"),
     ]
     second_row = [
-        html.Div(
-            className="col-12",
-            id="date-range-div-countries",
-            children=[
-                country.select_date_range(scope="country")
-            ]
-        )
+        country.date_range_div(content_type="country")
     ]
     return [
         first_row,

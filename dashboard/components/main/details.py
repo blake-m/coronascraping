@@ -45,6 +45,12 @@ class ComponentsData(object):
         init_current_single_country_data()
         init_world_data()
 
+    def set_current_country(self, country: str) -> None:
+        print("FIRED (set_current_country)")
+        self.current_country = \
+            self.source.get_dataframe_for_one_country(country)
+        self.current_country_name = country
+
     def get_all_countries_summary(self) -> pd.DataFrame:
         t1 = datetime.now()
 
@@ -180,7 +186,7 @@ class Components(object):
         return select_country
 
     @labeled_div_with_class_and_id(label="Graph Type", class_name="col-2")
-    def select_graph_type(self, id_: str) -> dbc.RadioItems:
+    def select_graph_type(self, content_type: str) -> dbc.RadioItems:
         return dbc.RadioItems(
             options=[
                 {"label": "Dedicated", "value": "Dedicated"},
@@ -188,7 +194,10 @@ class Components(object):
                 {"label": "Line", "value": "Line"},
             ],
             value="Dedicated",
-            id=id_,
+            id={
+                "type": "radio-graph-type",
+                "index": content_type,
+            },
             inline=True,
         )
 
@@ -208,8 +217,8 @@ class Components(object):
         )
 
     @labeled_div_with_class_and_id(label="Date Range", class_name="col-12")
-    def select_date_range(self, scope: str = "country") -> dcc.RangeSlider:
-        if scope == "world":
+    def select_date_range(self, content_type: str = "country") -> dcc.RangeSlider:
+        if content_type == "world":
             data = self.data.world
         else:
             data = self.data.current_country
@@ -227,12 +236,28 @@ class Components(object):
             if value in mark_values
         }
         return dcc.RangeSlider(
-            id=f'date-range-slider-{scope}',
+            id={
+                "type": 'date-range-slider',
+                "index": content_type
+            },
             min=min_value,
             max=max_value,
             marks=marks,
             step=1,
             value=[min_value, max_value]
+        )
+
+    def date_range_div(self, content_type: str):
+        class_name = "col-12" if content_type == "country" else "col-8"
+        return html.Div(
+            className=class_name,
+            id={
+                "type": "date-range-div",
+                "index": content_type,
+            },
+            children=[
+                self.select_date_range(content_type=content_type)
+            ]
         )
 
     def basic_info(self, content_type: str) -> html.Div:

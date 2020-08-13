@@ -165,10 +165,10 @@ class PostgresDataSource(DataSource):
 
 
 def main():
-    data_source = PostgresDataSource(CONFIG_PATH)
-    # data_source = JSONDataSource(CONFIG_PATH)
-    country = data_source.get_dataframe_for_one_country("poland")
-    countries = data_source.get_countries()
+    source = PostgresDataSource(CONFIG_PATH)
+    # source = JSONDataSource(CONFIG_PATH)
+    country = source.get_dataframe_for_one_country("poland")
+    countries = source.get_countries()
 
 
 if __name__ == "__main__":

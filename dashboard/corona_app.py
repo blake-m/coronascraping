@@ -1,9 +1,9 @@
-from typing import List
+from typing import List, Dict
 
 import dash
 import dash_bootstrap_components as dbc
 import dash_html_components as html
-from dash.dependencies import Input, Output, State, MATCH
+from dash.dependencies import Input, Output, State, MATCH, ALL
 
 from components.main import worldtable
 from components.main.map import worldmap
@@ -18,19 +18,36 @@ def create_app(country: Components) -> dash.Dash:
     app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
     @app.callback(
-        Output("date-range-div-countries", "children"),
+        Output({"type": "date-range-div", "index": MATCH}, "children"),
         [Input("countries_dropdown", "value")],
+        [State({"type": "date-range-div", "index": MATCH}, "id")]
     )
-    def update_date_range(country_name: str):
+    def update_date_range(country_name: str, state_id: Dict[str, str]):
         country.data.set_current_country(country_name)
-        return country.select_date_range()
+        return country.date_range_div(content_type=state_id["index"])
+
+    @app.callback(
+        Output({"type": "graph-world-div", "index": MATCH}, "children"),
+        [
+            Input({"type": "radio-graph-type", "index": ALL}, "value"),
+            Input({"type": "date-range-slider", "index": ALL}, "value"),
+        ],
+        [
+            State({"type": "graph-world-div", "index": MATCH}, "id")
+        ]
+    )
+    def update_world_graphs(graph_type: str, date_range: List[int], state_id):
+        graph_class = INSTALLED_GRAPHS[state_id["index"]]
+        graph = graph_class(
+            country.data.world, graph_type[0], date_range[0]).get_graph()
+        return graph
 
     @app.callback(
         Output({"type": "graph-country-div", "index": MATCH}, "children"),
         [
             Input("countries_dropdown", "value"),
-            Input("radio-graph-type-country", "value"),
-            Input("date-range-slider-country", "value"),
+            Input({"type": "radio-graph-type", "index": ALL}, "value"),
+            Input({"type": "date-range-slider", "index": ALL}, "value"),
         ],
         [
             State({"type": "graph-country-div", "index": MATCH}, "id")
@@ -43,23 +60,7 @@ def create_app(country: Components) -> dash.Dash:
 
         graph_class = INSTALLED_GRAPHS[state_id["index"]]
         graph = graph_class(
-            country.data.current_country, graph_type, date_range).get_graph()
-        return graph
-
-    @app.callback(
-        Output({"type": "graph-world-div", "index": MATCH}, "children"),
-        [
-            Input("radio-graph-type-country", "value"),
-            Input("date-range-slider-country", "value"),
-        ],
-        [
-            State({"type": "graph-world-div", "index": MATCH}, "id")
-        ]
-    )
-    def update_world_graphs(graph_type: str, date_range: List[int], state_id):
-        graph_class = INSTALLED_GRAPHS[state_id["index"]]
-        graph = graph_class(
-            country.data.world, graph_type, date_range).get_graph()
+            country.data.current_country, graph_type[1], date_range[1]).get_graph()
         return graph
 
     @app.callback(
@@ -89,8 +90,8 @@ def create_app(country: Components) -> dash.Dash:
         [
             Input("card-main", "active_tab"),
             Input("countries_dropdown", "value"),
-            Input("radio-graph-type-country", "value"),
-            Input("date-range-slider-country", "value"),
+            Input({"type": "radio-graph-type", "index": MATCH}, "value"),
+            Input({"type": "date-range-slider", "index": MATCH}, "value"),
         ],
         [
             State({"type": "content", "index": MATCH}, "id"),
@@ -98,8 +99,6 @@ def create_app(country: Components) -> dash.Dash:
     )
     def update_countries_content(
             active_tab, country_name, graph_type, date_range, state_id):
-        print("FIRED", "tab_content")
-        print("state_id", state_id)
         if state_id["index"] == "country":
             return country.main_div("country")
         else:
