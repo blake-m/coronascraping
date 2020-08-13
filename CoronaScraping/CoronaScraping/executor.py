@@ -50,14 +50,19 @@ class WorldMeterSpidersExecutor:
 
         return output_files
 
-    def check_if_run_successfully_in_last_24_hours(self, spider_name) -> bool:
+    def check_if_run_today(self, spider_name) -> bool:
         spider_last_run_config = self.configuration[spider_name]["last_run"]
         last_run_date_str = spider_last_run_config["date"]
         last_run_date = datetime.datetime.strptime(last_run_date_str, "%Y-%m-%d %H:%M:%S.%f")
-        last_run_plus_one_day = last_run_date + datetime.timedelta(days=1)
+        last_run_date = last_run_date.date()
+        todays_date = datetime.datetime.now().date()
+        if last_run_date >= todays_date:
+            return True
+        return False
 
-        time_now = datetime.datetime.now()
-        if last_run_plus_one_day > time_now:
+    def time_is_right(self):
+        hour_now = datetime.datetime.now().hour
+        if hour_now >= 1 & hour_now <= 3:
             return True
         return False
 
