@@ -8,7 +8,7 @@ CONFIG_PATH = './config.ini'
 NOT_AVAILABLE_MESSAGE = "Data N/A"
 
 
-class CountryComponent(CountryAndWorldComponentsBase):
+class CountryComponents(CountryAndWorldComponentsBase):
     def __init__(self, data: ComponentsData):
         super().__init__(data)
         self.content_type = "country"

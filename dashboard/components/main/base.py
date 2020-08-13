@@ -46,7 +46,6 @@ class ComponentsData(object):
         init_world_data()
 
     def set_current_country(self, country: str) -> None:
-        print("FIRED (set_current_country)")
         self.current_country = \
             self.source.get_dataframe_for_one_country(country)
         self.current_country_name = country
@@ -121,7 +120,8 @@ class ComponentsData(object):
     @staticmethod
     def get_first_case_or_no_data_message(data: pd.DataFrame) -> str:
         try:
-            return data.index[data['graph_cases_daily'] != 0][0]
+            first_case_raw = data.index[data['graph_cases_daily'] != 0][0]
+            return funcs.date_to_day_month_year_format(first_case_raw)
         except KeyError:
             return NOT_AVAILABLE_MESSAGE
 
