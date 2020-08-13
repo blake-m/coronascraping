@@ -3,10 +3,11 @@ from typing import List
 
 import dash_bootstrap_components as dbc
 import dash_html_components as html
+from dash.dependencies import Output, Input
 
 from components.graphs.figs import INSTALLED_GRAPHS
 
-from components.main import worldtable
+from components.main import worldtable, details
 from components.main.details import Components
 from components.main.map import worldmap
 
@@ -35,7 +36,6 @@ def main_tab(label: str) -> Callable:
                         html.Div(
                             className="card p-3 text-body",
                             children=[
-
                                 html.Div(
                                     className="row align-text-top",
                                     children=row
@@ -104,12 +104,18 @@ def tabs(countries: Components) -> dbc.Tabs:
     )
 
 
-def switch_tab_content(active_tab: str, country: Components) -> html.Div:
-    if active_tab == "tab-world-map":
-        return worldmap.children
-    elif active_tab == "tab-world-detail":
-        return country.main_div("world")
-    elif active_tab == "tab-world-table":
-        return worldtable.children
-    elif active_tab == "tab-countries":
-        return country.main_div("country")
+def switch_tab_content(app, country):
+    @app.callback(
+        Output("card-content", "children"),
+        [Input("card-main", "active_tab")]
+    )
+    def func(active_tab):
+        if active_tab == "tab-world-map":
+            return worldmap.children
+        elif active_tab == "tab-world-detail":
+            return country.children("world")
+        elif active_tab == "tab-world-table":
+            return worldtable.children
+        elif active_tab == "tab-countries":
+            return country.children("country")
+    return func

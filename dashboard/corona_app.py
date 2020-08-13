@@ -12,6 +12,7 @@ from components.main.map.worldmap import create_map
 from components import tabs
 
 from components.graphs.figs import INSTALLED_GRAPHS
+from components.tabs import switch_tab_content
 
 
 def create_app(country: Components) -> dash.Dash:
@@ -24,7 +25,7 @@ def create_app(country: Components) -> dash.Dash:
     )
     def update_date_range(country_name: str, state_id: Dict[str, str]):
         country.data.set_current_country(country_name)
-        return country.date_range_div(content_type=state_id["index"])
+        return country.select_date_range(content_type=state_id["index"])
 
     @app.callback(
         Output({"type": "graph-world-div", "index": MATCH}, "children"),
@@ -63,12 +64,13 @@ def create_app(country: Components) -> dash.Dash:
             country.data.current_country, graph_type[1], date_range[1]).get_graph()
         return graph
 
-    @app.callback(
-        Output("card-content", "children"),
-        [Input("card-main", "active_tab")]
-    )
-    def update_tab_content(active_tab):
-        return tabs.switch_tab_content(active_tab=active_tab, country=country)
+    # @app.callback(
+    #     Output("card-content", "children"),
+    #     [Input("card-main", "active_tab")]
+    # )
+    # def update_tab_content(active_tab):
+    #     return tabs.switch_tab_content(active_tab=active_tab, country=country)
+    switch_tab_content(app, country)
 
     # Loading spinners callbacks
     @app.callback(
@@ -86,6 +88,7 @@ def create_app(country: Components) -> dash.Dash:
         return worldmap.get_fig(country.data)
 
     @app.callback(
+        # Output({"type": "content", "index": MATCH}, "children"),
         Output({"type": "content", "index": MATCH}, "children"),
         [
             Input("card-main", "active_tab"),
@@ -100,9 +103,9 @@ def create_app(country: Components) -> dash.Dash:
     def update_countries_content(
             active_tab, country_name, graph_type, date_range, state_id):
         if state_id["index"] == "country":
-            return country.main_div("country")
+            return country.content("country")
         else:
-            return country.main_div("world")
+            return country.content("world")
 
     @app.callback(
         Output({"type": "graphs", "index": MATCH}, "className"),

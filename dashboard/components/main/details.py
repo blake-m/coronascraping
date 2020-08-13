@@ -217,7 +217,8 @@ class Components(object):
         )
 
     @labeled_div_with_class_and_id(label="Date Range", class_name="col-12")
-    def select_date_range(self, content_type: str = "country") -> dcc.RangeSlider:
+    def select_date_range(self,
+                          content_type: str = "country") -> dcc.RangeSlider:
         if content_type == "world":
             data = self.data.world
         else:
@@ -343,49 +344,56 @@ class Components(object):
             ]
         )
 
-    def main_div(
-            self, content_type: str,
-            graph_classes: List[str] = GRAPH_CLASSES) -> html.Div:
+    def children(self, content_type: str):
+        return [
+            html.Div(
+                id={
+                    "type": "content",
+                    "index": content_type
+                },
+                children=[],
+                style={"min-height": "500px"},
+            )
+        ]
 
-        return html.Div(
-            id={
-                "type": "content",
-                "index": content_type
-            },
-            children=[
-                html.Div(
-                    id="basic-info-div",
-                    className="container",
-                    children=[
-                        self.basic_info(content_type=content_type),
-                    ]
-                ),
-                html.Div(
-                    id={
-                        "type": "graphs",
-                        "index": content_type
-                    },
-                    className="container",
-                    children=[
-                        *[dcc.Loading(
-                            id="loading-table",
-                            children=[
-                                html.Div(
-                                    id={
-                                        "index": f"{graph.__name__}",
-                                        "type": f"graph-{content_type}-div",
-                                    },
-                                    children=html.Div(
-                                        style={"min-height": "100px"}
-                                    )
+    def content(
+            self, content_type: str,
+            graph_classes: List[str] = GRAPH_CLASSES) -> List[html.Div]:
+        return [
+            html.Div(
+                id="basic-info-div",
+                className="container",
+                children=[
+                    self.basic_info(content_type=content_type),
+                ]
+            ),
+            html.Div(
+                id={
+                    "type": "graphs",
+                    "index": content_type
+                },
+                className="container",
+                children=[
+                    *[dcc.Loading(
+                        id="loading-table",
+                        children=[
+                            html.Div(
+                                id={
+                                    "index": f"{graph.__name__}",
+                                    "type": f"graph-{content_type}-div",
+                                },
+                                children=html.Div(
+                                    style={"min-height": "100px"}
                                 )
-                            ]
-                        ) for graph in graph_classes]
-                    ]
-                )
-            ],
-            style={"min-height": "500px"},
-        )
+                            )
+                        ]
+                    ) for graph in graph_classes]
+                ]
+            )
+        ]
+
+
+
 
 
 def main():
