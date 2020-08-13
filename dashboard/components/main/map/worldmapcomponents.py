@@ -14,7 +14,7 @@ ISO_CODES_PATH = os.path.join(*[
     "components", "main", "map", "countries_codes_and_coordinates.csv"])
 
 
-class WorldMap(ComponentsBase):
+class WorldMapComponents(ComponentsBase):
     @staticmethod
     @labeled_div_with_class_and_id(
         label="Map Projection Type", class_name="col-4")

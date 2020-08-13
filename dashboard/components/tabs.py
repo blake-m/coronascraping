@@ -7,9 +7,12 @@ from dash.dependencies import Output, Input
 
 from components.graphs.figs import INSTALLED_GRAPHS
 
-from components.main import worldtable, details
-from components.main.details import Components
-from components.main.map import worldmap
+from components.main import worldtable, base
+from components.main.base import CountryAndWorldComponentsBase
+from components.main.country import CountryComponent
+from components.main.map import worldmapcomponents
+from components.main.map.worldmapcomponents import WorldMapComponents
+from components.main.world import WorldComponent
 
 GRAPH_CLASSES = INSTALLED_GRAPHS.values()
 
@@ -50,7 +53,7 @@ def main_tab(label: str) -> Callable:
 
 
 @main_tab(label="World Map")
-def world_map_content() -> List[List[html.Div]]:
+def world_map_content(worldmap: WorldMapComponents) -> List[List[html.Div]]:
     first_row = [
         worldmap.set_data_shown(),
         worldmap.set_projection(),
@@ -60,11 +63,11 @@ def world_map_content() -> List[List[html.Div]]:
 
 
 @main_tab(label="World Detail")
-def world_detail_content(country: Components) -> List[List[html.Div]]:
+def world_detail_content(world: WorldComponent) -> List[List[html.Div]]:
     first_row = [
-        country.select_graph_type("world"),
-        country.select_graph_width("world"),
-        country.date_range_div(content_type="world")
+        world.select_graph_type(),
+        world.select_graph_width(),
+        world.date_range_div()
     ]
 
     return [
@@ -73,14 +76,14 @@ def world_detail_content(country: Components) -> List[List[html.Div]]:
 
 
 @main_tab(label="Countries")
-def countries_content(country: Components) -> List[List[html.Div]]:
+def countries_content(country: CountryComponent) -> List[List[html.Div]]:
     first_row = [
         country.select_country_dropdown(),
-        country.select_graph_type("country"),
-        country.select_graph_width("country"),
+        country.select_graph_type(),
+        country.select_graph_width(),
     ]
     second_row = [
-        country.date_range_div(content_type="country")
+        country.date_range_div()
     ]
     return [
         first_row,
@@ -88,15 +91,15 @@ def countries_content(country: Components) -> List[List[html.Div]]:
     ]
 
 
-def tabs(countries: Components) -> dbc.Tabs:
+def tabs(worldmap: WorldMapComponents, world: WorldComponent, country: CountryComponent) -> dbc.Tabs:
     return dbc.Tabs([
-        world_map_content(),
-        world_detail_content(countries),
+        world_map_content(worldmap),
+        world_detail_content(world),
         dbc.Tab(
             label="World Table",
             tab_id="tab-world-table",
         ),
-        countries_content(countries),
+        countries_content(country),
     ],
         id="card-main",
         card=True,
@@ -104,18 +107,18 @@ def tabs(countries: Components) -> dbc.Tabs:
     )
 
 
-def switch_tab_content(app, country):
+def switch_tab_content(app, worldmap: WorldMapComponents, world: WorldComponent, country: CountryComponent):
     @app.callback(
         Output("card-content", "children"),
         [Input("card-main", "active_tab")]
     )
     def func(active_tab):
         if active_tab == "tab-world-map":
-            return worldmap.children
+            return worldmap.children()
         elif active_tab == "tab-world-detail":
-            return country.children("world")
+            return world.children()
         elif active_tab == "tab-world-table":
             return worldtable.children
         elif active_tab == "tab-countries":
-            return country.children("country")
+            return country.children()
     return func

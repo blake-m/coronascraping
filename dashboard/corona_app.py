@@ -6,17 +6,21 @@ import dash_html_components as html
 from dash.dependencies import Input, Output, State, MATCH, ALL
 
 from components.main import worldtable
-from components.main.map import worldmap
-from components.main.details import Components
-from components.main.map.worldmap import create_map
+from components.main.country import CountryComponent
+from components.main.map import worldmapcomponents as wm
+from components.main.base import ComponentsData
 from components import tabs
 
 from components.graphs.figs import INSTALLED_GRAPHS
+from components.main.world import WorldComponent
 from components.tabs import switch_tab_content
 
 
-def create_app(country: Components) -> dash.Dash:
+def create_app(data: ComponentsData) -> dash.Dash:
     app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+    country = CountryComponent(data)
+    world = WorldComponent(data)
+    worldmap = wm.WorldMapComponents(data)
 
     @app.callback(
         Output({"type": "date-range-div", "index": MATCH}, "children"),
@@ -24,8 +28,11 @@ def create_app(country: Components) -> dash.Dash:
         [State({"type": "date-range-div", "index": MATCH}, "id")]
     )
     def update_date_range(country_name: str, state_id: Dict[str, str]):
-        country.data.set_current_country(country_name)
-        return country.select_date_range(content_type=state_id["index"])
+        data.set_current_country(country_name)
+        if state_id["index"] == "country":
+            return country.select_date_range()
+        else:
+            return world.select_date_range()
 
     @app.callback(
         Output({"type": "graph-world-div", "index": MATCH}, "children"),
@@ -40,7 +47,7 @@ def create_app(country: Components) -> dash.Dash:
     def update_world_graphs(graph_type: str, date_range: List[int], state_id):
         graph_class = INSTALLED_GRAPHS[state_id["index"]]
         graph = graph_class(
-            country.data.world, graph_type[0], date_range[0]).get_graph()
+            data.world, graph_type[0], date_range[0]).get_graph()
         return graph
 
     @app.callback(
@@ -61,16 +68,10 @@ def create_app(country: Components) -> dash.Dash:
 
         graph_class = INSTALLED_GRAPHS[state_id["index"]]
         graph = graph_class(
-            country.data.current_country, graph_type[1], date_range[1]).get_graph()
+            data.current_country, graph_type[1], date_range[1]).get_graph()
         return graph
 
-    # @app.callback(
-    #     Output("card-content", "children"),
-    #     [Input("card-main", "active_tab")]
-    # )
-    # def update_tab_content(active_tab):
-    #     return tabs.switch_tab_content(active_tab=active_tab, country=country)
-    switch_tab_content(app, country)
+    switch_tab_content(app, worldmap, world, country)
 
     # Loading spinners callbacks
     @app.callback(
@@ -78,17 +79,16 @@ def create_app(country: Components) -> dash.Dash:
         [Input("card-main", "active_tab")]
     )
     def update_worldtable_loading_spinner(active_tab):
-        return worldtable.get_fig(country.data)
+        return worldtable.get_fig(data)
 
     @app.callback(
         Output("worldmap-content", "children"),
         [Input("card-main", "active_tab")]
     )
     def update_worldmap_loading_spinner(active_tab):
-        return worldmap.get_fig(country.data)
+        return worldmap.get_fig()
 
     @app.callback(
-        # Output({"type": "content", "index": MATCH}, "children"),
         Output({"type": "content", "index": MATCH}, "children"),
         [
             Input("card-main", "active_tab"),
@@ -103,9 +103,9 @@ def create_app(country: Components) -> dash.Dash:
     def update_countries_content(
             active_tab, country_name, graph_type, date_range, state_id):
         if state_id["index"] == "country":
-            return country.content("country")
+            return country.content()
         else:
-            return country.content("world")
+            return world.content()
 
     @app.callback(
         Output({"type": "graphs", "index": MATCH}, "className"),
@@ -126,14 +126,14 @@ def create_app(country: Components) -> dash.Dash:
         ],
     )
     def update_worldmap_content(projection: str, data_shown: str, size: int):
-        return create_map(country.data, projection, data_shown, size)
+        return worldmap.create_map(projection, data_shown, size)
 
     main = html.Div(
         className="",
         children=dbc.Card(
             [
                 dbc.CardHeader(
-                    tabs.tabs(country),
+                    tabs.tabs(worldmap, world, country),
                     className="card-header text-white bg-primary",
                 ),
                 dbc.CardBody(

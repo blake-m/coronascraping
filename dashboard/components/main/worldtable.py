@@ -2,7 +2,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 import dash_table
 
-from components.main.details import ComponentsData
+from components.main.base import ComponentsData
 
 
 def get_fig(data: ComponentsData) -> html.Div:

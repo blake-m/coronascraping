@@ -171,28 +171,14 @@ class ComponentsBase(abc.ABC):
         self.data = data
 
 
-class CountryAndWorldComponents(ComponentsBase):
+class CountryAndWorldComponentsBase(ComponentsBase, abc.ABC):
     def __init__(self, data: ComponentsData):
         super().__init__(data)
         self.graph_classes = INSTALLED_GRAPHS.values()
-
-    @labeled_div_with_class_and_id(label="Country", class_name="col-8 mb-3")
-    def select_country_dropdown(self):
-        dropdown_items = [
-            {"label": f"{funcs.correct_country_name(country)}",
-             "value": country}
-            for country in self.data.all_countries_names_list
-        ]
-        select_country = dbc.Select(
-            id="countries_dropdown",
-            options=dropdown_items,
-            value="poland",  # Explicitly set
-            className="custom-select",
-        )
-        return select_country
+        self.content_type: str = ""
 
     @labeled_div_with_class_and_id(label="Graph Type", class_name="col-2")
-    def select_graph_type(self, content_type: str) -> dbc.RadioItems:
+    def select_graph_type(self) -> dbc.RadioItems:
         return dbc.RadioItems(
             options=[
                 {"label": "Dedicated", "value": "Dedicated"},
@@ -202,30 +188,29 @@ class CountryAndWorldComponents(ComponentsBase):
             value="Dedicated",
             id={
                 "type": "radio-graph-type",
-                "index": content_type,
+                "index": self.content_type,
             },
             inline=True,
         )
 
     @labeled_div_with_class_and_id(
         label="Graph Appearance", class_name="col-2")
-    def select_graph_width(self, graph_type: str):
+    def select_graph_width(self):
         return dbc.Checklist(
             options=[
                 {"label": "Wide Graphs", "value": True},
             ],
             value=[],
             id={
-                "index": graph_type,
+                "index": self.content_type,
                 "type": "graph-width"
             },
             switch=True,
         )
 
     @labeled_div_with_class_and_id(label="Date Range", class_name="col-12")
-    def select_date_range(self,
-                          content_type: str = "country") -> dcc.RangeSlider:
-        if content_type == "world":
+    def select_date_range(self) -> dcc.RangeSlider:
+        if self.content_type == "world":
             data = self.data.world
         else:
             data = self.data.current_country
@@ -245,7 +230,7 @@ class CountryAndWorldComponents(ComponentsBase):
         return dcc.RangeSlider(
             id={
                 "type": 'date-range-slider',
-                "index": content_type
+                "index": self.content_type
             },
             min=min_value,
             max=max_value,
@@ -254,25 +239,25 @@ class CountryAndWorldComponents(ComponentsBase):
             value=[min_value, max_value]
         )
 
-    def date_range_div(self, content_type: str):
-        class_name = "col-12" if content_type == "country" else "col-8"
+    def date_range_div(self):
+        class_name = "col-12" if self.content_type == "country" else "col-8"
         return html.Div(
             className=class_name,
             id={
                 "type": "date-range-div",
-                "index": content_type,
+                "index": self.content_type,
             },
             children=[
-                self.select_date_range(content_type=content_type)
+                self.select_date_range()
             ]
         )
 
-    def basic_info(self, content_type: str) -> html.Div:
-        if content_type == "country":
+    def basic_info(self) -> html.Div:
+        if self.content_type == "country":
             div_label = self.data.current_country_name
             data = self.data.current_country
-        elif content_type == "world":
-            div_label = content_type
+        elif self.content_type == "world":
+            div_label = self.content_type
             data = self.data.world
         summary_dict = self.data.get_country_basic_info_dict(data)
 
@@ -350,20 +335,19 @@ class CountryAndWorldComponents(ComponentsBase):
             ]
         )
 
-    @staticmethod
-    def children(content_type: str):
+    def children(self):
         return [
             html.Div(
                 id={
                     "type": "content",
-                    "index": content_type
+                    "index": self.content_type
                 },
                 children=[],
                 style={"min-height": "500px"},
             )
         ]
 
-    def graph_divs_list(self, content_type: str) -> List[dcc.Loading]:
+    def graph_divs_list(self) -> List[dcc.Loading]:
         return [
             dcc.Loading(
                 id="loading-table",
@@ -371,7 +355,7 @@ class CountryAndWorldComponents(ComponentsBase):
                     html.Div(
                         id={
                             "index": f"{graph.__name__}",
-                            "type": f"graph-{content_type}-div",
+                            "type": f"graph-{self.content_type}-div",
                         },
                         children=html.Div(
                             style={"min-height": "100px"}
@@ -381,19 +365,19 @@ class CountryAndWorldComponents(ComponentsBase):
             ) for graph in self.graph_classes
         ]
 
-    def content(self, content_type: str) -> List[html.Div]:
+    def content(self) -> List[html.Div]:
         return [
             html.Div(
                 id="basic-info-div",
                 className="container",
-                children=[self.basic_info(content_type=content_type)]
+                children=[self.basic_info()]
             ),
             html.Div(
                 id={
                     "type": "graphs",
-                    "index": content_type
+                    "index": self.content_type
                 },
                 className="container",
-                children=[*self.graph_divs_list(content_type=content_type)]
+                children=[*self.graph_divs_list()]
             )
         ]
