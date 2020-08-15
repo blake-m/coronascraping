@@ -46,7 +46,6 @@ class CountryGraphsDataExtractingSpider(BaseSpider):
             yield scrapy.Request(full_country_link,
                                  callback=self.parse_country,
                                  cb_kwargs={"country": current_country})
-            break
 
     def parse_js_scripts(self, response):
         all_scripts = response.css(self.config.all_js_scripts).getall()

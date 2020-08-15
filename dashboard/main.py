@@ -7,7 +7,7 @@ def main():
     template.bootstrap()
     data = ComponentsData()
     app = create_app(data)
-    app.run_server(host="0.0.0.0", port=8050, debug=True)
+    app.run_server(host="0.0.0.0", port=8051, debug=True)
 
 
 if __name__ == "__main__":
