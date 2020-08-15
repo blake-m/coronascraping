@@ -1,3 +1,5 @@
+import logging
+
 from components.main.base import ComponentsData
 from components import template
 from corona_app import create_app
@@ -11,5 +13,5 @@ server = app.server
 @server.route("/reload_data")
 def reload_data():
     data.__init__()
-    print("ALL DATA RELOADED")
+    logging.info("ALL DATA RELOADED")
     return "ALL DATA RELOADED"

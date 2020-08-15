@@ -132,8 +132,11 @@ class DataBaseConstructor(object):
         """
         self.cur = self.connection.cursor()
         fetched = []
+        logging.info(fetched)
         try:
+            logging.info(query)
             self.cur.execute(query)
+            logging.info(query)
 
             if commit:
                 self.connection.commit()
@@ -149,7 +152,8 @@ class DataBaseConstructor(object):
                 self.cur = None
         except psycopg2.DatabaseError as error:
             logging.error(error)
-
+            logging.info(error)
+        logging.info(fetched)
         return fetched
 
     def run_queries_in_group_and_commit(self, queries: List[str]):

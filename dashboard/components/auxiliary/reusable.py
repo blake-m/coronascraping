@@ -1,3 +1,4 @@
+import logging
 from typing import Optional, Callable
 
 from datetime import datetime
@@ -45,6 +46,6 @@ def print_startup_time(action_name: str) -> Callable:
             t1 = datetime.now()
             function(*args, **kwargs)
             t2 = datetime.now()
-            print(f"{action_name} STARTUP TIME:", t2 - t1)
+            logging.info(f"{action_name} STARTUP TIME: {t2 - t1}")
         return wrapper
     return decorator

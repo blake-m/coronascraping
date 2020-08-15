@@ -14,6 +14,7 @@ app.config['RECEIVED_FOLDER'] = settings.RECEIVED_FOLDER
 
 
 def send_reload_command_to_dashboard():
+    logging.info("Sending a command to reload the dashboard...")
     url = "http://corona_dashboard:8050/reload_data"
 
     response = requests.get(url)

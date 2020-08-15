@@ -14,12 +14,16 @@ class Inserter(object):
     def insert(self, clean_start=False):
         # TODO(blake): multiprocessed/threaded?
         for country in self.data_source.data_as_dict:
+            if country == "world-population":
+                continue
             df_country = self.data_source.get_pandas_dataframe_for_one_country(
                 country)
             country = country.replace('-', "_")
             df_country = df_country.drop([','], axis=1, errors='ignore')
             if clean_start:
-                self.db.run_query(f"DROP TABLE {country}")
+                query = f"DROP TABLE  IF EXISTS {country}"
+                self.db.run_query(query)
+                logging.info(f"Table {country} dropped.")
 
             self.db.create_table(
                 table_name=country,
@@ -43,3 +47,4 @@ class Inserter(object):
                     """
                 logging.info(f"Query about to be run: \n{query}")
                 self.db.run_query(query)
+

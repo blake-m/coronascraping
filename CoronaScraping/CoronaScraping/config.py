@@ -14,4 +14,3 @@ class ConfigData:
             else:
                 exec(f"self.{key} = {value}")
             # TODO(blake): remove this print
-            exec(f'print("self.{key}", self.{key})')

@@ -18,6 +18,8 @@ class WorldMeterSpidersExecutor:
         self.spiders = self.configuration.keys()
 
     def run_process(self, spider, output_file_config, spider_config):
+        from twisted.internet import reactor
+
         process = crawler.CrawlerProcess(settings={
             "FEEDS": {
                 output_file_config["name"]: {"format": output_file_config["format"]},
@@ -33,6 +35,7 @@ class WorldMeterSpidersExecutor:
             pass
         process.crawl(spider, spider_config)
         process.start()
+        process.stop()
         return output_file
 
     def run_all(self):
@@ -67,7 +70,7 @@ class WorldMeterSpidersExecutor:
     def time_is_right(self):
         hour_now = datetime.datetime.now().hour
         logging.info("HOUR NOW IS ", hour_now)
-        if hour_now >= 1 & hour_now <= 15:
+        if 1 <= hour_now <= 6:  # reload at night
             return True
         return False
 
