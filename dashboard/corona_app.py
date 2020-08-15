@@ -67,7 +67,7 @@ def create_app(data: ComponentsData) -> dash.Dash:
     def update_world_graphs(graph_type: str, date_range: List[int], state_id):
         graph_class = INSTALLED_GRAPHS[state_id["index"]]
         graph = graph_class(
-            data.world, graph_type[0], date_range[0]).get_graph()
+            data.world, graph_type[1], date_range[1]).get_graph()
         return graph
 
     @app.callback(
@@ -85,7 +85,7 @@ def create_app(data: ComponentsData) -> dash.Dash:
                               date_range: List[int], state_id):
         graph_class = INSTALLED_GRAPHS[state_id["index"]]
         graph = graph_class(
-            data.current_country, graph_type[1], date_range[1]).get_graph()
+            data.current_country, graph_type[0], date_range[0]).get_graph()
         return graph
 
     switch_tab_content(app, all_components)
