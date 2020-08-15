@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 from scrapy import crawler
 import json
@@ -38,15 +39,13 @@ class WorldMeterSpidersExecutor:
         from CoronaScraping.spiders.worldmeter import \
             CountryGraphsDataExtractingSpider
         REAL_SPIDER = CountryGraphsDataExtractingSpider
-        output_files = []
+        output_files = {}
         for spider_name in self.spiders:
             output_file_config = self.configuration[spider_name]["output_file"]
             spider_config = self.configuration[spider_name]["configuration"]
             output_file = self.run_process(REAL_SPIDER, output_file_config,
                                            spider_config)
-            self.update_config_file_last_successful_run_date(spider_name)
-
-            output_files.append(output_file)
+            output_files[spider_name] = output_file
 
         return output_files
 
@@ -56,13 +55,19 @@ class WorldMeterSpidersExecutor:
         last_run_date = datetime.datetime.strptime(last_run_date_str, "%Y-%m-%d %H:%M:%S.%f")
         last_run_date = last_run_date.date()
         todays_date = datetime.datetime.now().date()
+        logging.info(f"LAST RUN: {last_run_date}\nTODAY'S DATE: {todays_date}")
         if last_run_date >= todays_date:
+            logging.info(f"last_run_date >= todays_date - result: {last_run_date >= todays_date}")
             return True
+        logging.info(
+            f"last_run_date >= todays_date - result: {last_run_date >= todays_date}")
+
         return False
 
     def time_is_right(self):
         hour_now = datetime.datetime.now().hour
-        if hour_now >= 1 & hour_now <= 3:
+        logging.info("HOUR NOW IS ", hour_now)
+        if hour_now >= 1 & hour_now <= 15:
             return True
         return False
 
