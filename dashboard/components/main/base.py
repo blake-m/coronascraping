@@ -354,8 +354,9 @@ class CountryAndWorldComponentsBase(ComponentsBase, abc.ABC):
                 children=[
                     html.Div(
                         id={
-                            "index": f"{graph.__name__}",
-                            "type": f"graph-{self.content_type}-div",
+                            "index": f"{self.content_type.capitalize()}"
+                                     f"{graph.__name__}",
+                            "type": f"graph-div",
                         },
                         children=html.Div(
                             style={"min-height": "100px"}

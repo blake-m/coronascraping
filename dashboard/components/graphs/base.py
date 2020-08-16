@@ -1,5 +1,5 @@
 import abc
-from typing import Tuple, List
+from typing import Tuple, List, Optional
 
 import dash_core_components as dcc
 import numpy as np
@@ -78,7 +78,7 @@ class BaseGraph(abc.ABC):
         )
         return fig
 
-    def get_figure(self, data):
+    def get_figure(self, data) -> dcc.Graph:
         fig = go.Figure(data=data)
         fig = self.update_figure_layout(fig)
         graph_ready = dcc.Graph(
@@ -87,7 +87,7 @@ class BaseGraph(abc.ABC):
         )
         return graph_ready
 
-    def get_graph(self):
+    def get_graph(self) -> Optional[dcc.Graph]:
         if self.check_if_data_available():
             x, y = self.get_x_and_y_axis_data()
             x, y = self.get_x_and_y_axis_selected_range_data(x, y)
@@ -133,7 +133,7 @@ class AdvancedBaseGraph(BaseGraph):
             x, y) -> List[plotly.graph_objs._BaseTraceType]:
         pass
 
-    def get_graph(self):
+    def get_graph(self) -> Optional[dcc.Graph]:
         if self.check_if_data_available():
             x, y = self.get_x_and_y_axis_data()
             x, y = self.get_x_and_y_axis_selected_range_data(x, y)
