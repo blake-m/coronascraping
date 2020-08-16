@@ -70,7 +70,7 @@ class WorldMeterSpidersExecutor:
     def time_is_right(self):
         hour_now = datetime.datetime.now().hour
         logging.info(f"HOUR NOW IS {hour_now}")
-        if 1 <= hour_now <= 6:  # reload at night
+        if 2 <= hour_now <= 7:  # reload at night
             return True
         return False
 
