@@ -26,7 +26,7 @@ class ComponentsData(object):
         def init_common_data():
             self.source = data_source.PostgresDataSource(CONFIG_PATH)
             self.all_countries_names_list = self.source.get_countries()
-            self.all_counries = self.source.get_dataframe_for_all_countries()
+            self.all_countries = self.source.get_dataframe_for_all_countries()
 
         @print_startup_time("CURRENT SINGLE COUNTRY DATA")
         def init_current_single_country_data():
@@ -38,7 +38,6 @@ class ComponentsData(object):
         @print_startup_time("WORLD DATA")
         def init_world_data():
             self.summary_data = self.get_all_countries_summary()
-            self.all_counries = self.source.get_dataframe_for_all_countries()
             self.world = self.get_world_data()
 
         init_common_data()
@@ -51,12 +50,12 @@ class ComponentsData(object):
         self.current_country_name = country
 
     def get_all_countries_summary(self) -> pd.DataFrame:
-        t1 = datetime.now()
-
         summary_data_list = []
         for country in self.all_countries_names_list:
-            country_data = self.all_counries[
-                self.all_counries["country"] == country]
+            country_data = self.all_countries[
+                self.all_countries["country"] == country]
+            # set_index -> format required by get_country_basic_info_dict
+            country_data = country_data.set_index("date")
             country_data_summarized = {
                 "Country": country,
                 **self.get_country_basic_info_dict(country_data)
@@ -66,17 +65,15 @@ class ComponentsData(object):
         df_grouped = pd.DataFrame(summary_data_list)
         df_grouped["Country"] = df_grouped["Country"].apply(
             funcs.correct_country_name)
-        t2 = datetime.now()
-        print("get_all_countries_summary TIME: ", t2 - t1)
+        del df_grouped["Latest Data"]  # Not necessary in the table
         return df_grouped
 
     def get_world_data(self) -> pd.DataFrame:
-        grouped_by_day = self.all_counries.drop("country", axis=1)
+        grouped_by_day = self.all_countries.drop("country", axis=1)
         grouped_by_day = grouped_by_day.fillna(0)
 
         grouped_by_day["date_sortable"] = pd.to_datetime(
-            grouped_by_day["date"],
-            # format="%Y %b %d"
+            grouped_by_day["date"]
         )
 
         grouped_by_day = grouped_by_day. \
@@ -85,7 +82,6 @@ class ComponentsData(object):
 
         grouped_by_day = grouped_by_day.sort_values(by=["date_sortable"])
         grouped_by_day = grouped_by_day.set_index('date_sortable')
-        # grouped_by_day.to_excel("GROUPED.xlsx")
 
         return grouped_by_day
 
@@ -121,7 +117,7 @@ class ComponentsData(object):
     def get_first_case_or_no_data_message(data: pd.DataFrame) -> str:
         try:
             first_case_raw = data.index[data['graph_cases_daily'] != 0][0]
-            return funcs.date_to_day_month_year_format(first_case_raw)
+            return funcs.date_to_string_with_day_month_year_format(first_case_raw)
         except KeyError:
             return NOT_AVAILABLE_MESSAGE
 
@@ -141,7 +137,7 @@ class ComponentsData(object):
 
     @staticmethod
     def get_latest_data(data: pd.DataFrame) -> str:
-        return funcs.date_to_day_month_year_format(data.index[-1])
+        return funcs.date_to_string_with_day_month_year_format(data.index[-1])
 
     def get_country_basic_info_dict(self, data: pd.DataFrame) -> Dict:
         summary_dict = {
@@ -223,7 +219,7 @@ class CountryAndWorldComponentsBase(ComponentsBase, abc.ABC):
         mark_values = np.linspace(start=0, stop=max_value, num=10, dtype=int)
 
         marks = {
-            value: funcs.date_to_month_day_format(mark) for value, mark
+            value: funcs.date_to__string_with_month_day_format(mark) for value, mark
             in zip(value_range, labels)
             if value in mark_values
         }

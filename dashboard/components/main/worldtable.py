@@ -2,10 +2,10 @@ import dash_core_components as dcc
 import dash_html_components as html
 import dash_table
 
-from components.main.base import ComponentsData, ComponentsBase
+from components.main.world import WorldComponents
 
 
-class WorldTableComponents(ComponentsBase):
+class WorldTableComponents(WorldComponents):
     def get_fig(self) -> html.Div:
         df = self.data.summary_data
         bootstrap_colors = {
@@ -18,8 +18,9 @@ class WorldTableComponents(ComponentsBase):
             children=[
                 dash_table.DataTable(
                     id='table',
-                    columns=[{"name": column, "id": column} for column in
-                             df.columns],
+                    columns=[
+                        {"name": column, "id": column} for column in df.columns
+                    ],
                     data=df.to_dict('records'),
                     filter_action="native",
                     sort_action="native",
@@ -64,5 +65,4 @@ class WorldTableComponents(ComponentsBase):
                     )
                 ],
             )
-
         ]
