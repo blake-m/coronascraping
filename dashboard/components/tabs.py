@@ -1,11 +1,11 @@
 from collections import Callable
-from typing import List, Dict
+from typing import List
 
 import dash_bootstrap_components as dbc
 import dash_html_components as html
-from dash.dependencies import Output, Input
 
 from components.graphs.figs import INSTALLED_GRAPHS
+from components.holder import ComponentsHolder
 
 from components.main.country import CountryComponents
 from components.main.map.worldmap import WorldMapComponents
@@ -67,9 +67,7 @@ def world_detail_content(world: WorldComponents) -> List[List[html.Div]]:
         world.select_graph_width(),
         world.date_range_div()
     ]
-    return [
-        first_row,
-    ]
+    return [first_row]
 
 
 @main_tab(label="Countries")
@@ -88,35 +86,18 @@ def countries_content(country: CountryComponents) -> List[List[html.Div]]:
     ]
 
 
-def tabs(all_components: Dict) -> dbc.Tabs:
-    return dbc.Tabs([
-        world_map_content(all_components["worldmap"]),
-        world_detail_content(all_components["world"]),
-        dbc.Tab(
-            label="World Table",
-            tab_id="tab-world-table",
-        ),
-        countries_content(all_components["country"]),
-    ],
+def tabs(components_holder: ComponentsHolder) -> dbc.Tabs:
+    return dbc.Tabs(
         id="card-main",
         card=True,
         active_tab="tab-world-map",
+        children=[
+            world_map_content(components_holder.worldmap),
+            world_detail_content(components_holder.world),
+            dbc.Tab(
+                label="World Table",
+                tab_id="tab-world-table",
+            ),
+            countries_content(components_holder.country),
+        ]
     )
-
-
-def switch_tab_content(app, all_components: Dict):
-    @app.callback(
-        Output("card-content", "children"),
-        [Input("card-main", "active_tab")]
-    )
-    def func(active_tab):
-        if active_tab == "tab-world-map":
-            return all_components["worldmap"].children()
-        elif active_tab == "tab-world-detail":
-            return all_components["world"].children()
-        elif active_tab == "tab-world-table":
-            return all_components["worldtable"].children()
-        elif active_tab == "tab-countries":
-            return all_components["country"].children()
-
-    return func

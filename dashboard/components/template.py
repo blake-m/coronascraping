@@ -3,6 +3,7 @@ import plotly.io as pio
 
 
 def bootstrap():
+    """Set CSS template to be used by Dash."""
     pio.templates["bootstrap"] = go.layout.Template({
         "layout": {
             "colorway": [
